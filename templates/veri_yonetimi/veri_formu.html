@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}{% if veri.pk %}Veri Düzenle{% else %}Yeni Veri Ekle{% endif %} - DVP{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+    <!-- Modern Header -->
+    <div class="card p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200">
+        <div class="text-center">
+            <div class="inline-block p-3 bg-white rounded-full shadow-sm mb-4">
+                {% if veri.pk %}
+                    <span class="text-3xl">✏️</span>
+                {% else %}
+                    <span class="text-3xl">➕</span>
+                {% endif %}
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">
+                {% if veri.pk %}Veri Düzenle{% else %}Yeni Veri Ekle{% endif %}
+            </h1>
+            <p class="text-gray-600 mb-4">
+                {% if veri.pk %}
+                    Mevcut veriyi güncelleyin
+                {% else %}
+                    Sisteme yeni veri ekleyin
+                {% endif %}
+            </p>
+            
+            <!-- Navigation Buttons -->
+            <div class="flex flex-wrap justify-center gap-3">
+                <a href="{% url 'veri_yonetimi:ana_sayfa' %}" class="btn btn-secondary">
+                    🏠 Ana Sayfa
+                </a>
+                <a href="{% url 'veri_yonetimi:veri_listesi' %}" class="btn btn-primary">
+                    📊 Veri Listesi
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Form -->
+    {% if aktif_sutunlar %}
+        <div class="card p-6">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Error Messages -->
+                {% if form.errors %}
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-red-600">⚠️</span>
+                            <h3 class="text-red-800 font-medium">Form hataları bulundu</h3>
+                        </div>
+                        <ul class="text-red-700 text-sm space-y-1">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li>• {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <!-- Form Fields -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {% for sutun in aktif_sutunlar %}
+                        <div class="{% if sutun.ad == 'Plaka' or sutun.ad == 'İl Adı' %}lg:col-span-2{% endif %}">
+                            <label for="id_sutun_{{ sutun.id }}" class="block text-sm font-semibold text-gray-700 mb-3">
+                                <span class="flex items-center gap-2">
+                                    {% if sutun.ad == 'Plaka' %}
+                                        🚗 {{ sutun.ad }}
+                                        <span class="inline-block bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">Zorunlu</span>
+                                    {% elif sutun.ad == 'İl Adı' %}
+                                        🏙️ {{ sutun.ad }}
+                                        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Zorunlu</span>
+                                    {% elif 'Cihaz' in sutun.ad %}
+                                        📱 {{ sutun.ad }}
+                                    {% elif 'Tarih' in sutun.ad %}
+                                        📅 {{ sutun.ad }}
+                                    {% elif 'Durum' in sutun.ad %}
+                                        🔍 {{ sutun.ad }}
+                                    {% else %}
+                                        📝 {{ sutun.ad }}
+                                    {% endif %}
+                                </span>
+                            </label>
+                            
+                            <!-- Input Fields -->
+                            {% if sutun.ad == 'Plaka' %}
+                                <input type="text" 
+                                       name="sutun_{{ sutun.id }}" 
+                                       id="id_sutun_{{ sutun.id }}"
+                                       value="{% if form.sutun_1.value %}{{ form.sutun_1.value }}{% elif veri %}{% for deger in veri.degerler.all %}{% if deger.sutun == sutun %}{{ deger.deger }}{% endif %}{% endfor %}{% endif %}"
+                                       class="w-full input text-base border-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                                       placeholder="01, 06, 34, 81..."
+                                       pattern="[0-9]{1,2}"
+                                       title="1-2 haneli plaka numarası girin"
+                                       required>
+                                <p class="mt-2 text-sm text-gray-600">
+                                    💡 Örnek: 01 (Adana), 06 (Ankara), 34 (İstanbul), 81 (Düzce)
+                                </p>
+                                
+                            {% elif sutun.ad == 'İl Adı' %}
+                                <input type="text" 
+                                       name="sutun_{{ sutun.id }}" 
+                                       id="id_sutun_{{ sutun.id }}"
+                                       value="{% if form.sutun_2.value %}{{ form.sutun_2.value }}{% elif veri %}{% for deger in veri.degerler.all %}{% if deger.sutun == sutun %}{{ deger.deger }}{% endif %}{% endfor %}{% endif %}"
+                                       class="w-full input text-base border-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                                       placeholder="Adana, Ankara, İstanbul..."
+                                       maxlength="50"
+                                       required>
+                                <p class="mt-2 text-sm text-gray-600">
+                                    💡 Örnek: Adana, Ankara, İstanbul, İzmir, Bursa
+                                </p>
+                                
+                            {% elif 'Cihaz' in sutun.ad %}
+                                <div class="relative">
+                                    <input type="number" 
+                                           name="sutun_{{ sutun.id }}" 
+                                           id="id_sutun_{{ sutun.id }}"
+                                           value="{% if form.sutun_3.value %}{{ form.sutun_3.value }}{% elif veri and sutun.tip == 'kurulacak' %}{{ veri.kurulacak_cihaz_sayisi|default:'0' }}{% elif veri and sutun.tip == 'kurulan' %}{{ veri.kurulan_cihaz_sayisi|default:'0' }}{% elif veri and sutun.tip == 'arizali' %}{{ veri.arizali_cihaz_sayisi|default:'0' }}{% endif %}"
+                                           class="w-full input text-base border-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                                           placeholder="0, 5, 25, 100..."
+                                           min="0"
+                                           max="9999">
+                                    <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                                        📱
+                                    </div>
+                                </div>
+                                <p class="mt-2 text-sm text-gray-600">
+                                    💡 Sadece sayı girin (örn: 0, 5, 25, 100, 500)
+                                </p>
+                                
+                            {% elif 'Tarih' in sutun.ad %}
+                                <input type="date" 
+                                       name="sutun_{{ sutun.id }}" 
+                                       id="id_sutun_{{ sutun.id }}"
+                                       value="{% if form.sutun_4.value %}{{ form.sutun_4.value }}{% elif veri %}{% for deger in veri.degerler.all %}{% if deger.sutun == sutun %}{{ deger.deger }}{% endif %}{% endfor %}{% endif %}"
+                                       class="w-full input text-base border-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200">
+                                <p class="mt-2 text-sm text-gray-600">
+                                    💡 Tarih seçin
+                                </p>
+                                
+                            {% elif sutun.tip == 'tamamlanma' %}
+                                <div class="relative">
+                                    <input type="number" 
+                                           name="sutun_{{ sutun.id }}" 
+                                           id="id_sutun_{{ sutun.id }}"
+                                           value="{% if form.sutun_5.value %}{{ form.sutun_5.value }}{% elif veri %}{{ veri.tamamlanma_yuzdesi|default:'0' }}{% endif %}"
+                                           class="w-full input text-base border-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                                           placeholder="0, 25, 50, 75, 100..."
+                                           min="0"
+                                           max="100"
+                                           step="0.1">
+                                    <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                                        📊
+                                    </div>
+                                </div>
+                                <p class="mt-2 text-sm text-gray-600">
+                                    💡 Tamamlanma yüzdesi girin (0-100 arası)
+                                </p>
+                            {% else %}
+                                <input type="text" 
+                                       name="sutun_{{ sutun.id }}" 
+                                       id="id_sutun_{{ sutun.id }}"
+                                       value="{% if form.sutun_5.value %}{{ form.sutun_5.value }}{% elif veri %}{% for deger in veri.degerler.all %}{% if deger.sutun == sutun %}{{ deger.deger }}{% endif %}{% endfor %}{% endif %}"
+                                       class="w-full input text-base border-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                                       placeholder="{{ sutun.ad }} değerini girin"
+                                       maxlength="100">
+                                <p class="mt-2 text-sm text-gray-600">
+                                    💡 {{ sutun.ad }} için uygun değer girin
+                                </p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
+                    <button type="submit" class="btn btn-primary flex-1 text-base py-3">
+                        {% if veri.pk %}
+                            💾 Değişiklikleri Kaydet
+                        {% else %}
+                            ➕ Veriyi Ekle
+                        {% endif %}
+                    </button>
+                    
+                    <a href="{% url 'veri_yonetimi:veri_listesi' %}" class="btn btn-secondary flex-1 text-base py-3">
+                        ❌ İptal
+                    </a>
+                </div>
+            </form>
+        </div>
+    {% else %}
+        <!-- No Columns Available -->
+        <div class="card p-8 text-center">
+            <div class="text-6xl mb-4">⚠️</div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">Sütun Bulunamadı</h3>
+            <p class="text-gray-600 mb-6">
+                Veri eklemek için önce sütun tanımlamaları yapılmalıdır.
+            </p>
+            <div class="flex flex-wrap justify-center gap-3">
+                <a href="{% url 'veri_yonetimi:sutun_listesi' %}" class="btn btn-primary">
+                    ⚙️ Sütun Yönetimi
+                </a>
+                <a href="{% url 'veri_yonetimi:ana_sayfa' %}" class="btn btn-secondary">
+                    🏠 Ana Sayfa
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation and enhancement
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const plakaInput = document.getElementById('id_sutun_1');
+    const ilInput = document.getElementById('id_sutun_2');
+    
+    if (plakaInput) {
+        plakaInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value.length > 2) {
+                this.value = this.value.slice(0, 2);
+            }
+        });
+    }
+    
+    if (ilInput) {
+        ilInput.addEventListener('input', function() {
+            this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1).toLowerCase();
+        });
+    }
+    
+    // Form submission enhancement
+    form.addEventListener('submit', function(e) {
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('border-red-500', 'focus:border-red-500', 'focus:ring-red-200');
+                isValid = false;
+            } else {
+                field.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-200');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Lütfen zorunlu alanları doldurun!');
+        }
+    });
+});
+</script>
+{% endblock %}

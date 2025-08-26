@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Sunucu Hatası - 500{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-red-50 to-pink-50">
+    <div class="max-w-md w-full mx-auto text-center">
+        <!-- 500 Icon -->
+        <div class="mb-8">
+            <div class="text-9xl font-bold text-red-300 mb-4">500</div>
+            <div class="text-6xl mb-6">💥</div>
+        </div>
+        
+        <!-- Error Message -->
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">
+            Sunucu Hatası
+        </h1>
+        
+        <p class="text-lg text-gray-600 mb-8 leading-relaxed">
+            Üzgünüz, sunucuda beklenmeyen bir hata oluştu. 
+            Teknik ekibimiz bu durumdan haberdar edildi.
+        </p>
+        
+        <!-- Action Buttons -->
+        <div class="space-y-4">
+            <a href="{% url 'veri_yonetimi:veri_listesi' %}" 
+               class="btn-primary w-full text-center">
+                🏠 Ana Sayfaya Dön
+            </a>
+            
+            <button onclick="location.reload()" 
+                    class="btn-secondary w-full text-center">
+                🔄 Sayfayı Yenile
+            </button>
+        </div>
+        
+        <!-- Help Section -->
+        <div class="mt-12 p-6 bg-white/50 backdrop-blur-sm rounded-2xl border border-gray-200/50">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">🔧 Çözüm Önerileri</h3>
+            <div class="text-sm text-gray-600 space-y-2">
+                <p>• Sayfayı yeniden yüklemeyi deneyin</p>
+                <p>• Birkaç dakika bekleyip tekrar deneyin</p>
+                <p>• Tarayıcı önbelleğini temizleyin</p>
+                <p>• Farklı bir tarayıcı kullanmayı deneyin</p>
+            </div>
+        </div>
+        
+        <!-- Technical Info -->
+        <div class="mt-8 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <h4 class="text-sm font-semibold text-red-800 mb-2">📋 Teknik Bilgi</h4>
+            <p class="text-xs text-red-600">
+                Hata ID: {{ request.id|default:"Bilinmiyor" }}<br>
+                Zaman: {% now "d.m.Y H:i:s" %}
+            </p>
+        </div>
+        
+        <!-- Contact Info -->
+        <div class="mt-8 text-sm text-gray-500">
+            <p>Bu hata devam ederse, lütfen</p>
+            <p>teknik destek ekibi ile iletişime geçin.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

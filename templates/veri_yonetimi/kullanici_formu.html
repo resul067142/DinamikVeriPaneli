@@ -1,0 +1,723 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}{% if kullanici %}Kullanıcı Güncelle{% else %}Kullanıcı Ekle{% endif %} - DVP{% endblock %}
+
+{% block extra_js %}
+<script>
+function generateFakeTC() {
+    // TC kimlik numarası üretme algoritması
+    function generateTC() {
+        while (true) {
+            // İlk 9 haneyi rastgele oluştur
+            let firstNine = '';
+            for (let i = 0; i < 9; i++) {
+                firstNine += Math.floor(Math.random() * 10);
+            }
+            
+            // 10. hane (1. kontrol hanesi)
+            let sumOdd = 0;
+            let sumEven = 0;
+            
+            for (let i = 0; i < 9; i++) {
+                if (i % 2 === 0) {
+                    sumOdd += parseInt(firstNine[i]);
+                } else {
+                    sumEven += parseInt(firstNine[i]);
+                }
+            }
+            
+            let digit10 = (sumOdd * 7 - sumEven) % 10;
+            
+            // 11. hane (2. kontrol hanesi)
+            let firstTen = firstNine + digit10;
+            let sumAll = 0;
+            
+            for (let i = 0; i < 10; i++) {
+                sumAll += parseInt(firstTen[i]);
+            }
+            
+            let digit11 = sumAll % 10;
+            
+            // Tam TC kimlik numarası
+            return firstNine + digit10 + digit11;
+        }
+    }
+    
+    // TC kimlik numarasını üret ve input'a yerleştir
+    const tcInput = document.getElementById('tc_kimlik');
+    const fakeTC = generateTC();
+    
+    tcInput.value = fakeTC;
+    
+    // Başarı mesajı göster
+    showNotification(`🎲 Fake TC kimlik numarası üretildi: ${fakeTC}`, 'success');
+    
+    // Input'u vurgula
+    tcInput.focus();
+    tcInput.select();
+}
+
+function generateFakeEmail() {
+    const emailInput = document.getElementById('email');
+    const domains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'dvp.gov.tr'];
+    const randomDomain = domains[Math.floor(Math.random() * domains.length)];
+    const username = 'test' + Math.floor(Math.random() * 1000);
+    const fakeEmail = `${username}@${randomDomain}`;
+    
+    emailInput.value = fakeEmail;
+    showNotification(`🎲 Fake e-posta adresi üretildi: ${fakeEmail}`, 'success');
+    emailInput.focus();
+    emailInput.select();
+}
+
+function showNotification(message, type = 'info') {
+    // Modern notification sistemi
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-4 rounded-xl shadow-2xl z-50 text-sm font-medium transform transition-all duration-300 ${
+        type === 'success' ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+    }`;
+    notification.innerHTML = `
+        <div class="flex items-center gap-3">
+            <span class="text-lg">${type === 'success' ? '✅' : 'ℹ️'}</span>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animasyon ile göster
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0) scale(1)';
+    }, 100);
+    
+    // 4 saniye sonra kaldır
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%) scale(0.8)';
+        notification.style.opacity = '0';
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 4000);
+}
+
+// Form validasyonu ve geliştirmeleri
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const tcInput = document.getElementById('tc_kimlik');
+    const password1Input = document.getElementById('password1');
+    const password2Input = document.getElementById('password2');
+    
+    // TC kimlik numarası formatlaması
+    if (tcInput) {
+        tcInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value.length > 11) {
+                this.value = this.value.slice(0, 11);
+            }
+        });
+    }
+    
+    // Şifre güçlülük kontrolü
+    if (password1Input) {
+        password1Input.addEventListener('input', function() {
+            const password = this.value;
+            const strength = calculatePasswordStrength(password);
+            updatePasswordStrengthIndicator(strength);
+        });
+    }
+    
+    // Şifre eşleşme kontrolü
+    if (password2Input) {
+        password2Input.addEventListener('input', function() {
+            const match = this.value === password1Input.value;
+            updatePasswordMatchIndicator(match);
+        });
+    }
+    
+    // Form submission enhancement
+    form.addEventListener('submit', function(e) {
+        // TC kimlik numarası validasyonu
+        if (tcInput && tcInput.value) {
+            const tc = tcInput.value.trim();
+            
+            // 11 haneli sayı kontrolü
+            if (!/^\d{11}$/.test(tc)) {
+                e.preventDefault();
+                showNotification('❌ TC kimlik numarası 11 haneli sayı olmalıdır!', 'error');
+                tcInput.focus();
+                return;
+            }
+            
+            // TC kimlik numarası algoritma kontrolü
+            if (!isValidTC(tc)) {
+                e.preventDefault();
+                showNotification('❌ Geçersiz TC kimlik numarası! Lütfen geçerli bir TC kimlik numarası girin.', 'error');
+                tcInput.focus();
+                return;
+            }
+        }
+        
+        // Şifre eşleşme kontrolü
+        if (password1Input && password2Input && password1Input.value !== password2Input.value) {
+            e.preventDefault();
+            showNotification('❌ Şifreler eşleşmiyor!', 'error');
+            password2Input.focus();
+            return;
+        }
+    });
+    
+    function isValidTC(tc) {
+        if (tc.length !== 11 || tc[0] === '0') {
+            return false;
+        }
+        
+        // 10. hane kontrolü
+        let sumOdd = 0;
+        let sumEven = 0;
+        
+        for (let i = 0; i < 9; i++) {
+            if (i % 2 === 0) {
+                sumOdd += parseInt(tc[i]);
+            } else {
+                sumEven += parseInt(tc[i]);
+            }
+        }
+        
+        let digit10 = (sumOdd * 7 - sumEven) % 10;
+        if (parseInt(tc[9]) !== digit10) {
+            return false;
+        }
+        
+        // 11. hane kontrolü
+        let sumAll = 0;
+        for (let i = 0; i < 10; i++) {
+            sumAll += parseInt(tc[i]);
+        }
+        
+        let digit11 = sumAll % 10;
+        if (parseInt(tc[10]) !== digit11) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    function calculatePasswordStrength(password) {
+        let score = 0;
+        if (password.length >= 8) score++;
+        if (/[a-z]/.test(password)) score++;
+        if (/[A-Z]/.test(password)) score++;
+        if (/[0-9]/.test(password)) score++;
+        if (/[^A-Za-z0-9]/.test(password)) score++;
+        return score;
+    }
+    
+    function updatePasswordStrengthIndicator(strength) {
+        const indicator = document.getElementById('password-strength');
+        if (!indicator) return;
+        
+        const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500'];
+        const texts = ['Çok Zayıf', 'Zayıf', 'Orta', 'Güçlü', 'Çok Güçlü'];
+        const icons = ['😱', '😰', '😐', '😊', '💪'];
+        
+        indicator.className = `w-2 h-2 rounded-full ${colors[strength - 1] || 'bg-gray-300'}`;
+        indicator.title = texts[strength - 1] || 'Bilinmiyor';
+        
+        const textElement = document.getElementById('password-strength-text');
+        if (textElement) {
+            textElement.textContent = `${icons[strength - 1] || '❓'} ${texts[strength - 1] || 'Bilinmiyor'}`;
+            textElement.className = `text-xs ${strength >= 4 ? 'text-green-600' : strength >= 3 ? 'text-blue-600' : strength >= 2 ? 'text-yellow-600' : 'text-red-600'}`;
+        }
+    }
+    
+    function updatePasswordMatchIndicator(match) {
+        const indicator = document.getElementById('password-match');
+        if (!indicator) return;
+        
+        if (match) {
+            indicator.innerHTML = '✅ Eşleşiyor';
+            indicator.className = 'text-xs text-green-600 font-medium';
+        } else {
+            indicator.innerHTML = '❌ Eşleşmiyor';
+            indicator.className = 'text-xs text-red-600 font-medium';
+        }
+    }
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<style>
+/* Modern Form Styling */
+.modern-form {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.form-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.form-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.form-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 2rem;
+    text-align: center;
+    color: white;
+}
+
+.form-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.form-header p {
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+
+.form-body {
+    padding: 2rem;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.section-title .icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-field label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.form-field input {
+    padding: 0.75rem 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.form-field input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+}
+
+.form-field .help-text {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.required-badge {
+    background: #ef4444;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+.permissions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.permission-item {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.permission-item:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+}
+
+.permission-item input[type="checkbox"] {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-right: 0.75rem;
+}
+
+.permission-item .permission-title {
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 0.25rem;
+}
+
+.permission-item .permission-desc {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid #e2e8f0;
+}
+
+.btn-primary {
+    flex: 1;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+    padding: 1rem 2rem;
+    background: #f1f5f9;
+    color: #475569;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    text-align: center;
+}
+
+.btn-secondary:hover {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+}
+
+.fake-tc-btn {
+    background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.fake-tc-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);
+}
+
+.fake-email-btn {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.fake-email-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
+}
+
+@media (max-width: 768px) {
+    .form-body {
+        padding: 1rem;
+    }
+    
+    .form-section {
+        padding: 1rem;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .permissions-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<div class="modern-form">
+    <div class="form-container">
+        <div class="form-card">
+            
+            <!-- Form Body -->
+            <div class="form-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Personal Information Section -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <span class="icon" style="background: #dbeafe; color: #2563eb;">👤</span>
+                            Kişisel Bilgiler
+                        </div>
+                        
+                        <div class="form-grid">
+                            <!-- Username Field -->
+                            <div class="form-field">
+                                <label>
+                                    Kullanıcı Adı
+                                    <span class="required-badge">Zorunlu</span>
+                                </label>
+                                <input type="text" 
+                                       name="username" 
+                                       value="{{ kullanici.username|default:'' }}"
+                                       placeholder="Benzersiz kullanıcı adı"
+                                       {% if kullanici %}readonly{% endif %}
+                                       required>
+                                <div class="help-text">
+                                    💡 Benzersiz kullanıcı adı (değiştirilemez)
+                                </div>
+                            </div>
+
+                            <!-- First Name Field -->
+                            <div class="form-field">
+                                <label>Ad</label>
+                                <input type="text" 
+                                       name="first_name" 
+                                       value="{{ kullanici.first_name|default:'' }}"
+                                       placeholder="Kullanıcının adı"
+                                       maxlength="50">
+                            </div>
+
+                            <!-- Last Name Field -->
+                            <div class="form-field">
+                                <label>Soyad</label>
+                                <input type="text" 
+                                       name="last_name" 
+                                       value="{{ kullanici.last_name|default:'' }}"
+                                       placeholder="Kullanıcının soyadı"
+                                       maxlength="50">
+                            </div>
+
+                            <!-- TC Kimlik Field -->
+                            <div class="form-field">
+                                <label>
+                                    TC Kimlik No
+                                    <span class="required-badge">Zorunlu</span>
+                                </label>
+                                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                                    <input type="text" 
+                                           name="tc_kimlik" 
+                                           id="tc_kimlik"
+                                           value="{% if kullanici.profile.tc_kimlik %}{{ kullanici.profile.tc_kimlik }}{% endif %}"
+                                           placeholder="11 haneli TC kimlik numarası"
+                                           pattern="[0-9]{11}"
+                                           maxlength="11"
+                                           style="flex: 1;">
+                                    {% if not kullanici %}
+                                    <button type="button" 
+                                            onclick="generateFakeTC()" 
+                                            class="fake-tc-btn">
+                                        🎲 Fake TC
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                <div class="help-text">
+                                    💡 11 haneli benzersiz TC kimlik numarası
+                                </div>
+                            </div>
+
+                            <!-- Email Field -->
+                            <div class="form-field">
+                                <label>E-posta</label>
+                                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                                    <input type="email" 
+                                           name="email" 
+                                           id="email"
+                                           value="{{ kullanici.email|default:'' }}"
+                                           placeholder="Geçerli e-posta adresi"
+                                           maxlength="100"
+                                           style="flex: 1;">
+                                    {% if not kullanici %}
+                                    <button type="button" 
+                                            onclick="generateFakeEmail()" 
+                                            class="fake-email-btn">
+                                        🎲 Fake E-posta
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                <div class="help-text">
+                                    💡 Geçerli e-posta adresi formatı: kullanici@domain.com
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password Section (Only for new users) -->
+                    {% if not kullanici %}
+                    <div class="form-section">
+                        <div class="section-title">
+                            <span class="icon" style="background: #fef3c7; color: #d97706;">🔒</span>
+                            Güvenlik Bilgileri
+                        </div>
+                        
+                        <div class="form-grid">
+                            <!-- Password Field -->
+                            <div class="form-field">
+                                <label>
+                                    Şifre
+                                    <span class="required-badge">Zorunlu</span>
+                                </label>
+                                <input type="password" 
+                                       name="password1" 
+                                       id="password1"
+                                       placeholder="Güçlü şifre oluşturun"
+                                       required>
+                                <div class="help-text">
+                                    💡 En az 8 karakter, büyük/küçük harf, sayı ve özel karakter
+                                </div>
+                            </div>
+
+                            <!-- Password Confirm Field -->
+                            <div class="form-field">
+                                <label>
+                                    Şifre Tekrar
+                                    <span class="required-badge">Zorunlu</span>
+                                </label>
+                                <input type="password" 
+                                       name="password2" 
+                                       id="password2"
+                                       placeholder="Şifreyi tekrar girin"
+                                       required>
+                                <div class="help-text">
+                                    💡 Şifre ile aynı olmalı
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Permissions Section -->
+                    <div class="form-section">
+                        <div class="section-title">
+                            <span class="icon" style="background: #f3e8ff; color: #9333ea;">👑</span>
+                            Yetki ve İzinler
+                        </div>
+                        
+                        <div class="permissions-grid">
+                            <!-- Superuser Checkbox -->
+                            <label class="permission-item">
+                                <input type="checkbox" 
+                                       name="is_superuser" 
+                                       {% if kullanici.is_superuser %}checked{% endif %}>
+                                <div class="permission-title">Süper Kullanıcı</div>
+                                <div class="permission-desc">Tam yetki, tüm işlemler</div>
+                            </label>
+
+                            <!-- Staff Checkbox -->
+                            <label class="permission-item">
+                                <input type="checkbox" 
+                                       name="is_staff" 
+                                       {% if kullanici.is_staff %}checked{% endif %}>
+                                <div class="permission-title">İl Sorumlusu</div>
+                                <div class="permission-desc">Sınırlı yetki</div>
+                            </label>
+
+                            <!-- Active Checkbox -->
+                            <label class="permission-item">
+                                <input type="checkbox" 
+                                       name="is_active" 
+                                       {% if not kullanici or kullanici.is_active %}checked{% endif %}>
+                                <div class="permission-title">Aktif</div>
+                                <div class="permission-desc">Giriş yapabilir</div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">
+                            {% if kullanici %}
+                                💾 Değişiklikleri Kaydet
+                            {% else %}
+                                ➕ Kullanıcıyı Ekle
+                            {% endif %}
+                        </button>
+                        
+                        <a href="{% url 'veri_yonetimi:kullanici_listesi' %}" class="btn-secondary">
+                            ❌ İptal
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

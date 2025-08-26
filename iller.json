@@ -1,0 +1,488 @@
+[
+    {
+        "alan_1": "Adana",
+        "alan_2": "Akdeniz",
+        "alan_3": "01",
+        "alan_4": "2,220,125"
+    },
+    {
+        "alan_1": "Adıyaman",
+        "alan_2": "Güneydoğu Anadolu",
+        "alan_3": "02",
+        "alan_4": "632,459"
+    },
+    {
+        "alan_1": "Afyonkarahisar",
+        "alan_2": "Ege",
+        "alan_3": "03",
+        "alan_4": "736,912"
+    },
+    {
+        "alan_1": "Ağrı",
+        "alan_2": "Doğu Anadolu",
+        "alan_3": "04",
+        "alan_4": "536,199"
+    },
+    {
+        "alan_1": "Amasya",
+        "alan_2": "Karadeniz",
+        "alan_3": "05",
+        "alan_4": "337,508"
+    },
+    {
+        "alan_1": "Ankara",
+        "alan_2": "İç Anadolu",
+        "alan_3": "06",
+        "alan_4": "5,747,325"
+    },
+    {
+        "alan_1": "Antalya",
+        "alan_2": "Akdeniz",
+        "alan_3": "07",
+        "alan_4": "2,688,004"
+    },
+    {
+        "alan_1": "Artvin",
+        "alan_2": "Karadeniz",
+        "alan_3": "08",
+        "alan_4": "168,068"
+    },
+    {
+        "alan_1": "Aydın",
+        "alan_2": "Ege",
+        "alan_3": "09",
+        "alan_4": "1,110,972"
+    },
+    {
+        "alan_1": "Balıkesir",
+        "alan_2": "Marmara",
+        "alan_3": "10",
+        "alan_4": "1,240,285"
+    },
+    {
+        "alan_1": "Bilecik",
+        "alan_2": "Marmara",
+        "alan_3": "11",
+        "alan_4": "218,717"
+    },
+    {
+        "alan_1": "Bingöl",
+        "alan_2": "Doğu Anadolu",
+        "alan_3": "12",
+        "alan_4": "279,812"
+    },
+    {
+        "alan_1": "Bitlis",
+        "alan_2": "Doğu Anadolu",
+        "alan_3": "13",
+        "alan_4": "350,994"
+    },
+    {
+        "alan_1": "Bolu",
+        "alan_2": "Karadeniz",
+        "alan_3": "14",
+        "alan_4": "316,126"
+    },
+    {
+        "alan_1": "Burdur",
+        "alan_2": "Akdeniz",
+        "alan_3": "15",
+        "alan_4": "267,092"
+    },
+    {
+        "alan_1": "Bursa",
+        "alan_2": "Marmara",
+        "alan_3": "16",
+        "alan_4": "3,194,720"
+    },
+    {
+        "alan_1": "Çanakkale",
+        "alan_2": "Marmara",
+        "alan_3": "17",
+        "alan_4": "540,662"
+    },
+    {
+        "alan_1": "Çankırı",
+        "alan_2": "İç Anadolu",
+        "alan_3": "18",
+        "alan_4": "180,945"
+    },
+    {
+        "alan_1": "Çorum",
+        "alan_2": "İç Anadolu",
+        "alan_3": "19",
+        "alan_4": "530,126"
+    },
+    {
+        "alan_1": "Denizli",
+        "alan_2": "Ege",
+        "alan_3": "20",
+        "alan_4": "1,051,056"
+    },
+    {
+        "alan_1": "Diyarbakır",
+        "alan_2": "Güneydoğu Anadolu",
+        "alan_3": "21",
+        "alan_4": "1,783,431"
+    },
+    {
+        "alan_1": "Edirne",
+        "alan_2": "Marmara",
+        "alan_3": "22",
+        "alan_4": "411,531"
+    },
+    {
+        "alan_1": "Elazığ",
+        "alan_2": "Doğu Anadolu",
+        "alan_3": "23",
+        "alan_4": "591,497"
+    },
+    {
+        "alan_1": "Erzincan",
+        "alan_2": "Doğu Anadolu",
+        "alan_3": "24",
+        "alan_4": "234,747"
+    },
+    {
+        "alan_1": "Erzurum",
+        "alan_2": "Doğu Anadolu",
+        "alan_3": "25",
+        "alan_4": "762,321"
+    },
+    {
+        "alan_1": "Eskişehir",
+        "alan_2": "İç Anadolu",
+        "alan_3": "26",
+        "alan_4": "898,369"
+    },
+    {
+        "alan_1": "Gaziantep",
+        "alan_2": "Güneydoğu Anadolu",
+        "alan_3": "27",
+        "alan_4": "2,101,157"
+    },
+    {
+        "alan_1": "Giresun",
+        "alan_2": "Karadeniz",
+        "alan_3": "28",
+        "alan_4": "448,400"
+    },
+    {
+        "alan_1": "Gümüşhane",
+        "alan_2": "Karadeniz",
+        "alan_3": "29",
+        "alan_4": "141,702"
+    },
+    {
+        "alan_1": "Hakkari",
+        "alan_2": "Doğu Anadolu",
+        "alan_3": "30",
+        "alan_4": "278,218"
+    },
+    {
+        "alan_1": "Hatay",
+        "alan_2": "Akdeniz",
+        "alan_3": "31",
+        "alan_4": "1,670,712"
+    },
+    {
+        "alan_1": "Isparta",
+        "alan_2": "Akdeniz",
+        "alan_3": "32",
+        "alan_4": "445,678"
+    },
+    {
+        "alan_1": "Mersin",
+        "alan_2": "Akdeniz",
+        "alan_3": "33",
+        "alan_4": "1,891,145"
+    },
+    {
+        "alan_1": "İstanbul",
+        "alan_2": "Marmara",
+        "alan_3": "34",
+        "alan_4": "15,840,900"
+    },
+    {
+        "alan_1": "İzmir",
+        "alan_2": "Ege",
+        "alan_3": "35",
+        "alan_4": "4,425,789"
+    },
+    {
+        "alan_1": "Kars",
+        "alan_2": "Doğu Anadolu",
+        "alan_3": "36",
+        "alan_4": "285,410"
+    },
+    {
+        "alan_1": "Kastamonu",
+        "alan_2": "Karadeniz",
+        "alan_3": "37",
+        "alan_4": "375,476"
+    },
+    {
+        "alan_1": "Kayseri",
+        "alan_2": "İç Anadolu",
+        "alan_3": "38",
+        "alan_4": "1,434,357"
+    },
+    {
+        "alan_1": "Kırklareli",
+        "alan_2": "Marmara",
+        "alan_3": "39",
+        "alan_4": "361,737"
+    },
+    {
+        "alan_1": "Kırşehir",
+        "alan_2": "İç Anadolu",
+        "alan_3": "40",
+        "alan_4": "242,938"
+    },
+    {
+        "alan_1": "Kocaeli",
+        "alan_2": "Marmara",
+        "alan_3": "41",
+        "alan_4": "2,033,441"
+    },
+    {
+        "alan_1": "Konya",
+        "alan_2": "İç Anadolu",
+        "alan_3": "42",
+        "alan_4": "2,296,347"
+    },
+    {
+        "alan_1": "Kütahya",
+        "alan_2": "Ege",
+        "alan_3": "43",
+        "alan_4": "577,941"
+    },
+    {
+        "alan_1": "Malatya",
+        "alan_2": "Doğu Anadolu",
+        "alan_3": "44",
+        "alan_4": "800,165"
+    },
+    {
+        "alan_1": "Manisa",
+        "alan_2": "Ege",
+        "alan_3": "45",
+        "alan_4": "1,456,626"
+    },
+    {
+        "alan_1": "Kahramanmaraş",
+        "alan_2": "Akdeniz",
+        "alan_3": "46",
+        "alan_4": "1,168,163"
+    },
+    {
+        "alan_1": "Mardin",
+        "alan_2": "Güneydoğu Anadolu",
+        "alan_3": "47",
+        "alan_4": "854,716"
+    },
+    {
+        "alan_1": "Muğla",
+        "alan_2": "Ege",
+        "alan_3": "48",
+        "alan_4": "1,021,141"
+    },
+    {
+        "alan_1": "Muş",
+        "alan_2": "Doğu Anadolu",
+        "alan_3": "49",
+        "alan_4": "408,728"
+    },
+    {
+        "alan_1": "Nevşehir",
+        "alan_2": "İç Anadolu",
+        "alan_3": "50",
+        "alan_4": "308,003"
+    },
+    {
+        "alan_1": "Niğde",
+        "alan_2": "İç Anadolu",
+        "alan_3": "51",
+        "alan_4": "362,861"
+    },
+    {
+        "alan_1": "Ordu",
+        "alan_2": "Karadeniz",
+        "alan_3": "52",
+        "alan_4": "761,400"
+    },
+    {
+        "alan_1": "Rize",
+        "alan_2": "Karadeniz",
+        "alan_3": "53",
+        "alan_4": "344,359"
+    },
+    {
+        "alan_1": "Sakarya",
+        "alan_2": "Marmara",
+        "alan_3": "54",
+        "alan_4": "1,060,876"
+    },
+    {
+        "alan_1": "Samsun",
+        "alan_2": "Karadeniz",
+        "alan_3": "55",
+        "alan_4": "1,356,079"
+    },
+    {
+        "alan_1": "Siirt",
+        "alan_2": "Güneydoğu Anadolu",
+        "alan_3": "56",
+        "alan_4": "331,980"
+    },
+    {
+        "alan_1": "Sinop",
+        "alan_2": "Karadeniz",
+        "alan_3": "57",
+        "alan_4": "218,243"
+    },
+    {
+        "alan_1": "Sivas",
+        "alan_2": "İç Anadolu",
+        "alan_3": "58",
+        "alan_4": "635,889"
+    },
+    {
+        "alan_1": "Tekirdağ",
+        "alan_2": "Marmara",
+        "alan_3": "59",
+        "alan_4": "1,113,400"
+    },
+    {
+        "alan_1": "Tokat",
+        "alan_2": "Karadeniz",
+        "alan_3": "60",
+        "alan_4": "597,920"
+    },
+    {
+        "alan_1": "Trabzon",
+        "alan_2": "Karadeniz",
+        "alan_3": "61",
+        "alan_4": "816,686"
+    },
+    {
+        "alan_1": "Tunceli",
+        "alan_2": "Doğu Anadolu",
+        "alan_3": "62",
+        "alan_4": "84,660"
+    },
+    {
+        "alan_1": "Şanlıurfa",
+        "alan_2": "Güneydoğu Anadolu",
+        "alan_3": "63",
+        "alan_4": "2,115,256"
+    },
+    {
+        "alan_1": "Uşak",
+        "alan_2": "Ege",
+        "alan_3": "64",
+        "alan_4": "369,433"
+    },
+    {
+        "alan_1": "Van",
+        "alan_2": "Doğu Anadolu",
+        "alan_3": "65",
+        "alan_4": "1,141,015"
+    },
+    {
+        "alan_1": "Yozgat",
+        "alan_2": "İç Anadolu",
+        "alan_3": "66",
+        "alan_4": "424,981"
+    },
+    {
+        "alan_1": "Zonguldak",
+        "alan_2": "Karadeniz",
+        "alan_3": "67",
+        "alan_4": "591,204"
+    },
+    {
+        "alan_1": "Aksaray",
+        "alan_2": "İç Anadolu",
+        "alan_3": "68",
+        "alan_4": "423,011"
+    },
+    {
+        "alan_1": "Bayburt",
+        "alan_2": "Karadeniz",
+        "alan_3": "69",
+        "alan_4": "84,241"
+    },
+    {
+        "alan_1": "Karaman",
+        "alan_2": "İç Anadolu",
+        "alan_3": "70",
+        "alan_4": "258,838"
+    },
+    {
+        "alan_1": "Kırıkkale",
+        "alan_2": "İç Anadolu",
+        "alan_3": "71",
+        "alan_4": "278,749"
+    },
+    {
+        "alan_1": "Batman",
+        "alan_2": "Güneydoğu Anadolu",
+        "alan_3": "72",
+        "alan_4": "620,278"
+    },
+    {
+        "alan_1": "Şırnak",
+        "alan_2": "Güneydoğu Anadolu",
+        "alan_3": "73",
+        "alan_4": "529,615"
+    },
+    {
+        "alan_1": "Bartın",
+        "alan_2": "Karadeniz",
+        "alan_3": "74",
+        "alan_4": "198,249"
+    },
+    {
+        "alan_1": "Ardahan",
+        "alan_2": "Doğu Anadolu",
+        "alan_3": "75",
+        "alan_4": "97,319"
+    },
+    {
+        "alan_1": "Iğdır",
+        "alan_2": "Doğu Anadolu",
+        "alan_3": "76",
+        "alan_4": "199,442"
+    },
+    {
+        "alan_1": "Yalova",
+        "alan_2": "Marmara",
+        "alan_3": "77",
+        "alan_4": "296,333"
+    },
+    {
+        "alan_1": "Karabük",
+        "alan_2": "Karadeniz",
+        "alan_3": "78",
+        "alan_4": "248,458"
+    },
+    {
+        "alan_1": "Kilis",
+        "alan_2": "Güneydoğu Anadolu",
+        "alan_3": "79",
+        "alan_4": "142,490"
+    },
+    {
+        "alan_1": "Osmaniye",
+        "alan_2": "Akdeniz",
+        "alan_3": "80",
+        "alan_4": "538,759"
+    },
+    {
+        "alan_1": "Düzce",
+        "alan_2": "Karadeniz",
+        "alan_3": "81",
+        "alan_4": "400,976"
+    }
+]

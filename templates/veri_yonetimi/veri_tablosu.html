@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Veri Tablosu - DVP{% endblock %}
+
+{% block content %}
+<div class="space-y-2">
+    <!-- Data Table - Sadece Tablo -->
+    <div class="card p-2">
+        <!-- Search Form - Kompakt -->
+        <div class="bg-gray-50 rounded p-2 mb-2">
+            <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-2">
+                <div class="md:col-span-2">
+                    <input type="text" name="search" value="{{ search_query }}" 
+                           class="input text-xs" placeholder="Veri içinde ara...">
+                </div>
+                
+                <div>
+                    <select name="sort" class="input text-xs">
+                        <option value="olusturulma_tarihi" {% if sort_by == 'olusturulma_tarihi' %}selected{% endif %}>Oluşturulma Tarihi</option>
+                        <option value="id" {% if sort_by == 'id' %}selected{% endif %}>ID</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <select name="order" class="input text-xs">
+                        <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>Azalan</option>
+                        <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>Artan</option>
+                    </select>
+                </div>
+                
+                <div class="md:col-span-4 flex gap-2">
+                    <button type="submit" class="btn btn-primary text-xs flex-1">
+                        🔍 Ara
+                    </button>
+                    <a href="{% url 'veri_yonetimi:veri_listesi' %}" class="btn btn-secondary text-xs">
+                        🗑️ Temizle
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        {% if veriler %}
+            <!-- Data Table - Çok Kompakt -->
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            {% for sutun in aktif_sutunlar %}
+                            <th class="text-xs">
+                                <div class="flex items-center gap-1">
+                                    <span>{{ sutun.ad }}</span>
+                                    <button onclick="toggleSort('sutun_{{ sutun.id }}')" 
+                                            class="text-gray-400 hover:text-blue-600 text-xs">
+                                        {% if sort_by == 'sutun_'|add:sutun.id|stringformat:"s" %}
+                                            {% if sort_order == 'asc' %}🔼{% else %}🔽{% endif %}
+                                        {% else %}↕️{% endif %}
+                                    </button>
+                                </div>
+                            </th>
+                            {% endfor %}
+                            <th class="text-xs">Oluşturulma Tarihi</th>
+                            <th class="text-xs">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for veri in veriler %}
+                        <tr>
+                            {% for sutun in aktif_sutunlar %}
+                            <td class="text-xs">
+                                {% for deger in veri.degerler.all %}
+                                    {% if deger.sutun == sutun %}
+                                        <span class="bg-gray-100 px-1 py-0.5 rounded text-xs">{{ deger.deger }}</span>
+                                    {% endif %}
+                                {% empty %}
+                                    <span class="text-gray-400 text-xs">-</span>
+                                {% endfor %}
+                            </td>
+                            {% endfor %}
+                            <td class="text-xs text-gray-500">{{ veri.olusturulma_tarihi|date:"d.m.Y H:i" }}</td>
+                            <td>
+                                {% if user.is_superuser %}
+                                <div class="flex gap-1">
+                                    <a href="{% url 'veri_yonetimi:veri_guncelle' veri.pk %}" 
+                                       class="btn btn-secondary text-xs">
+                                        ✏️ Düzenle
+                                    </a>
+                                    <button onclick="confirmDelete({{ veri.pk }}, 'Veri #{{ veri.pk }}')" 
+                                            class="btn btn-secondary text-xs bg-red-100 text-red-800 hover:bg-red-200">
+                                        🗑️ Sil
+                                    </button>
+                                </div>
+                                {% else %}
+                                <span class="text-gray-400 text-xs">Sadece görüntüleme</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Results Summary - Mini -->
+            <div class="mt-2 p-1 bg-green-50 rounded text-center">
+                <p class="text-green-800 font-medium text-xs">🎉 Toplam {{ veriler.count }} kayıt bulundu.</p>
+                {% if search_query %}
+                    <p class="text-green-600 text-xs mt-1">
+                        "<strong>{{ search_query }}</strong>" için arama sonuçları.
+                    </p>
+                {% endif %}
+            </div>
+        {% else %}
+            <!-- Empty State - Mini -->
+            <div class="text-center py-3">
+                <div class="text-2xl mb-1">📭</div>
+                <h3 class="text-sm font-semibold text-gray-800 mb-1">
+                    {% if search_query %}
+                        Arama sonucu bulunamadı
+                    {% else %}
+                        Henüz veri bulunmuyor
+                    {% endif %}
+                </h3>
+                <p class="text-gray-600 mb-2 text-xs">
+                    {% if search_query %}
+                        "<strong>{{ search_query }}</strong>" için sonuç bulunamadı.
+                    {% else %}
+                        İlk verinizi eklemek için aşağıdaki butona tıklayın.
+                    {% endif %}
+                </p>
+                <div class="flex flex-wrap justify-center gap-2">
+                    {% if search_query %}
+                        <a href="{% url 'veri_yonetimi:veri_listesi' %}" class="btn btn-secondary text-xs">
+                            🔍 Tüm Verileri Gör
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'veri_yonetimi:veri_ekle' %}" class="btn btn-primary text-xs">
+                        ➕ İlk Veriyi Ekle
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Modal - Kompakt -->
+<div id="deleteModal" class="fixed inset-0 bg-black/50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="card max-w-md w-full">
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-lg">⚠️</span>
+                <h3 class="text-base font-semibold">Veri Silme Onayı</h3>
+            </div>
+            
+            <p class="text-gray-600 mb-4 text-sm">
+                "<span id="deleteItemName" class="font-semibold"></span>" adlı veriyi silmek istediğinizden emin misiniz?
+                <br><br>
+                <span class="text-red-600 font-medium">Bu işlem geri alınamaz!</span>
+            </p>
+            
+            <div class="flex gap-2">
+                <button onclick="closeDeleteModal()" class="btn btn-secondary flex-1 text-sm">
+                    ❌ İptal
+                </button>
+                <button id="confirmDeleteBtn" class="btn btn-secondary flex-1 bg-red-100 text-red-800 hover:bg-red-200 text-sm">
+                    🗑️ Evet, Sil
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sorting function
+function toggleSort(sortField) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentSort = urlParams.get('sort');
+    const currentOrder = urlParams.get('order') || 'desc';
+    
+    let newOrder = 'asc';
+    if (currentSort === sortField) {
+        newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+    }
+    
+    urlParams.set('sort', sortField);
+    urlParams.set('order', newOrder);
+    window.location.search = urlParams.toString();
+}
+
+// Delete confirmation
+function confirmDelete(pk, itemName) {
+    document.getElementById('deleteItemName').textContent = itemName;
+    document.getElementById('deleteModal').classList.remove('hidden');
+    
+    document.getElementById('confirmDeleteBtn').onclick = function() {
+        deleteItem(pk);
+    };
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+}
+
+function deleteItem(pk) {
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    const originalText = confirmBtn.innerHTML;
+    confirmBtn.innerHTML = '⏳ Siliniyor...';
+    confirmBtn.disabled = true;
+    
+    fetch(`/veri/sil-onay/${pk}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Silme işlemi başarısız: ' + data.message);
+            confirmBtn.innerHTML = originalText;
+            confirmBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Bir hata oluştu.');
+        confirmBtn.innerHTML = originalText;
+        confirmBtn.disabled = false;
+    });
+    
+    closeDeleteModal();
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

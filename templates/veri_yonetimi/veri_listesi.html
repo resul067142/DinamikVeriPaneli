@@ -1,0 +1,553 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Veri Listesi - DVP{% endblock %}
+
+{% block content %}
+<div class="space-y-2">
+    <!-- Data Table - Sadece Tablo -->
+    <div class="card p-2">
+        <!-- Türkiye Geneli Cihaz İstatistikleri -->
+        {% if user.is_superuser %}
+        <div class="card p-2 mb-2">
+            <h3 class="text-xs font-semibold text-gray-800 mb-2 text-center">🇹🇷 Türkiye Geneli Cihaz Durumu</h3>
+            
+            <div class="grid grid-cols-5 gap-2">
+                <div class="text-center p-2 bg-blue-50 rounded">
+                    <div class="text-sm font-bold text-blue-600">{{ turkiye_toplam_kurulacak|default:"0" }}</div>
+                    <div class="text-xs text-blue-800">🎯 Hedef</div>
+                </div>
+                
+                <div class="text-center p-2 bg-green-50 rounded">
+                    <div class="text-sm font-bold text-green-600">{{ turkiye_toplam_kurulan|default:"0" }}</div>
+                    <div class="text-xs text-green-800">🚀 İlerleme</div>
+                </div>
+                
+                <div class="text-center p-2 bg-orange-50 rounded">
+                    <div class="text-sm font-bold text-orange-600">{{ turkiye_toplam_kurulacak|default:"0"|add:"-"|add:turkiye_toplam_kurulan|default:"0" }}</div>
+                    <div class="text-xs text-orange-800">⏳ Kalan</div>
+                </div>
+                
+                <div class="text-center p-2 bg-red-50 rounded">
+                    <div class="text-sm font-bold text-red-600">{{ turkiye_toplam_arizali|default:"0" }}</div>
+                    <div class="text-xs text-red-800">⚠️ Arızalı</div>
+                </div>
+                
+                <div class="text-center p-2 bg-purple-50 rounded">
+                    <div class="text-sm font-bold text-purple-600">%{{ turkiye_tamamlanma_yuzdesi|default:"0" }}</div>
+                    <div class="text-xs text-purple-800">📊 Tamamlanma</div>
+                </div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="mt-2">
+                <div class="flex justify-between text-xs text-gray-600 mb-1">
+                    <span>Kurulum İlerlemesi</span>
+                    <span>%{{ turkiye_tamamlanma_yuzdesi|default:"0" }}</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-500" 
+                         style="width: {{ turkiye_tamamlanma_yuzdesi|default:0 }}%"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- İller Özelinde İstatistik Veriler -->
+        <div class="card p-2 mb-2 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200">
+            <h3 class="text-xs font-semibold text-indigo-800 mb-2 text-center">🏛️ İller Özelinde İstatistik Veriler</h3>
+            
+            <!-- İstatistik Kartları -->
+            <div class="grid grid-cols-6 gap-1 mb-2">
+                <!-- En Yüksek Tamamlanma -->
+                <div class="text-center p-2 bg-green-50 rounded border border-green-200">
+                    <div class="text-sm font-bold text-green-600">{{ en_yuksek_tamamlanma.yuzde|default:"0" }}%</div>
+                    <div class="text-xs text-green-800">{{ en_yuksek_tamamlanma.il|default:"-" }}</div>
+                    <div class="text-xs text-green-600">En Yüksek</div>
+                </div>
+                
+                <!-- En Düşük Tamamlanma -->
+                <div class="text-center p-2 bg-red-50 rounded border border-red-200">
+                    <div class="text-sm font-bold text-red-600">{{ en_dusuk_tamamlanma.yuzde|default:"0" }}%</div>
+                    <div class="text-xs text-red-800">{{ en_dusuk_tamamlanma.il|default:"0" }}</div>
+                    <div class="text-xs text-red-600">En Düşük</div>
+                </div>
+                
+                <!-- Ortalama Tamamlanma -->
+                <div class="text-center p-2 bg-blue-50 rounded border border-blue-200">
+                    <div class="text-sm font-bold text-blue-600">{{ ortalama_tamamlanma|default:"0" }}%</div>
+                    <div class="text-xs text-blue-800">Ortalama</div>
+                    <div class="text-xs text-blue-600">Tüm İller</div>
+                </div>
+                
+                <!-- Toplam İl Sayısı -->
+                <div class="text-center p-2 bg-purple-50 rounded border border-purple-200">
+                    <div class="text-sm font-bold text-purple-600">{{ toplam_il_sayisi|default:"0" }}</div>
+                    <div class="text-xs text-purple-800">Toplam İl</div>
+                    <div class="text-xs text-purple-600">81 İl</div>
+                </div>
+                
+                <!-- Tamamlanan İl Sayısı -->
+                <div class="text-center p-2 bg-emerald-50 rounded border border-emerald-200">
+                    <div class="text-sm font-bold text-emerald-600">{{ tamamlanan_il_sayisi|default:"0" }}</div>
+                    <div class="text-xs text-emerald-800">Tamamlanan</div>
+                    <div class="text-xs text-emerald-600">%80+</div>
+                </div>
+                
+                <!-- Kritik İl Sayısı -->
+                <div class="text-center p-2 bg-orange-50 rounded border border-orange-200">
+                    <div class="text-sm font-bold text-orange-600">{{ kritik_il_sayisi|default:"0" }}</div>
+                    <div class="text-xs text-orange-800">Kritik</div>
+                    <div class="text-xs text-orange-600">%30-</div>
+                </div>
+            </div>
+            
+            <!-- Detaylı İstatistikler -->
+            <div class="grid grid-cols-2 gap-2">
+                <!-- Bölgesel Dağılım -->
+                <div class="bg-white rounded p-2 border border-gray-200">
+                    <h4 class="text-xs font-semibold text-gray-700 mb-1">🗺️ Bölgesel Dağılım</h4>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs">
+                            <span>Marmara Bölgesi</span>
+                            <span class="font-medium">{{ marmara_ortalamasi|default:"0" }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-blue-500 h-1.5 rounded-full" style="width: {{ marmara_ortalamasi|default:0 }}%"></div>
+                        </div>
+                        
+                        <div class="flex justify-between text-xs">
+                            <span>Ege Bölgesi</span>
+                            <span class="font-medium">{{ ege_ortalamasi|default:"0" }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-green-500 h-1.5 rounded-full" style="width: {{ ege_ortalamasi|default:0 }}%"></div>
+                        </div>
+                        
+                        <div class="flex justify-between text-xs">
+                            <span>Akdeniz Bölgesi</span>
+                            <span class="font-medium">{{ akdeniz_ortalamasi|default:"0" }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-purple-500 h-1.5 rounded-full" style="width: {{ akdeniz_ortalamasi|default:0 }}%"></div>
+                        </div>
+                        
+                        <div class="flex justify-between text-xs">
+                            <span>İç Anadolu Bölgesi</span>
+                            <span class="font-medium">{{ ic_anadolu_ortalamasi|default:"0" }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-orange-500 h-1.5 rounded-full" style="width: {{ ic_anadolu_ortalamasi|default:0 }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Performans Kategorileri -->
+                <div class="bg-white rounded p-2 border border-gray-200">
+                    <h4 class="text-xs font-semibold text-gray-700 mb-1">📊 Performans Kategorileri</h4>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-green-600">🏆 Mükemmel (%80+)</span>
+                            <span class="font-medium">{{ mukemmel_il_sayisi|default:"0" }} il</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-green-500 h-1.5 rounded-full" style="width: {% widthratio mukemmel_il_sayisi|default:0 81 100 %}%"></div>
+                        </div>
+                        
+                        <div class="flex justify-between text-xs">
+                            <span class="text-blue-600">👍 İyi (%60-79)</span>
+                            <span class="font-medium">{{ iyi_il_sayisi|default:"0" }} il</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-blue-500 h-1.5 rounded-full" style="width: {% widthratio iyi_il_sayisi|default:0 81 100 %}%"></div>
+                        </div>
+                        
+                        <div class="flex justify-between text-xs">
+                            <span class="text-orange-600">⚠️ Orta (%40-59)</span>
+                            <span class="font-medium">{{ orta_il_sayisi|default:"0" }} il</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-orange-500 h-1.5 rounded-full" style="width: {% widthratio orta_il_sayisi|default:0 81 100 %}%"></div>
+                        </div>
+                        
+                        <div class="flex justify-between text-xs">
+                            <span class="text-red-600">📈 Kritik (%30-)</span>
+                            <span class="font-medium">{{ kritik_il_sayisi|default:"0" }} il</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="bg-red-500 h-1.5 rounded-full" style="width: {% widthratio kritik_il_sayisi|default:0 81 100 %}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons - Veri Ekle -->
+        <div class="flex justify-between items-center mb-2">
+            <a href="{% url 'veri_yonetimi:veri_ekle' %}" class="btn btn-primary text-sm">
+                ➕ Yeni Veri Ekle
+            </a>
+            <div class="text-sm text-gray-600">
+                Toplam: <span class="font-semibold">{{ veriler.count }}</span> veri
+            </div>
+        </div>
+
+        <!-- Search Form - Kompakt -->
+        <div class="bg-gray-50 rounded p-2 mb-2">
+            <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-2">
+                <div class="md:col-span-2">
+                    <input type="text" name="search" value="{{ search_query }}" 
+                           class="input text-xs" placeholder="Veri içinde ara...">
+                </div>
+                
+                <div>
+                    <select name="sort" class="input text-xs">
+                        <option value="olusturulma_tarihi" {% if sort_by == 'olusturulma_tarihi' %}selected{% endif %}>Oluşturulma Tarihi</option>
+                        <option value="id" {% if sort_by == 'id' %}selected{% endif %}>ID</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <select name="order" class="input text-xs">
+                        <option value="desc" {% if sort_order == 'desc' %}selected{% endif %}>Azalan</option>
+                        <option value="asc" {% if sort_order == 'asc' %}selected{% endif %}>Artan</option>
+                    </select>
+                </div>
+                
+                <div class="md:col-span-4 flex gap-2">
+                    <button type="submit" class="btn btn-primary text-xs flex-1">
+                        🔍 Ara
+                    </button>
+                    <a href="{% url 'veri_yonetimi:veri_listesi' %}" class="btn btn-secondary text-xs">
+                        🗑️ Temizle
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        {% if veriler %}
+            <!-- Data Table - Çok Kompakt -->
+            <div class="overflow-x-auto">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            {% for sutun in dinamik_sutunlar %}
+                            <th class="text-xs">
+                                <div class="flex items-center gap-1">
+                                    <span>{{ sutun.ad }}</span>
+                                    <button onclick="toggleSort('sutun_{{ sutun.id }}')" 
+                                            class="text-gray-400 hover:text-blue-600 text-xs">
+                                        {% if sort_by == 'sutun_'|add:sutun.id|stringformat:"s" %}
+                                            {% if sort_order == 'asc' %}🔼{% else %}🔽{% endif %}
+                                        {% else %}↕️{% endif %}
+                                    </button>
+                                </div>
+                            </th>
+                            {% endfor %}
+                            {% for sutun in cihaz_sutunlar %}
+                            <th class="text-xs">
+                                <div class="flex items-center gap-1">
+                                    <span>
+                                        {% if sutun.tip == 'kurulacak' %}🎯
+                                        {% elif sutun.tip == 'kurulan' %}🚀
+                                        {% elif sutun.tip == 'arizali' %}⚠️
+                                        {% elif sutun.tip == 'tamamlanma' %}📊
+                                        {% endif %}
+                                        {{ sutun.ad }}
+                                    </span>
+                                    <button onclick="toggleSort('sutun_{{ sutun.id }}')" 
+                                            class="text-gray-400 hover:text-blue-600 text-xs">
+                                        {% if sort_by == 'sutun_'|add:sutun.id|stringformat:"s" %}
+                                            {% if sort_order == 'asc' %}🔼{% else %}🔽{% endif %}
+                                        {% else %}↕️{% endif %}
+                                    </button>
+                                </div>
+                            </th>
+                            {% endfor %}
+                            <th class="text-xs">Oluşturulma Tarihi</th>
+                            <th class="text-xs">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for veri in veriler %}
+                        <tr>
+                            {% for sutun in dinamik_sutunlar %}
+                            <td class="text-xs">
+                                {% for deger in veri.degerler.all %}
+                                    {% if deger.sutun == sutun %}
+                                        <span class="bg-gray-100 px-1 py-0.5 rounded text-xs">{{ deger.deger }}</span>
+                                    {% endif %}
+                                {% empty %}
+                                    <span class="text-gray-400 text-xs">-</span>
+                                {% endfor %}
+                            </td>
+                            {% endfor %}
+                            {% for sutun in cihaz_sutunlar %}
+                            <td class="text-xs text-center">
+                                {% if sutun.tip == 'kurulacak' %}
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">
+                                            {{ veri.kurulacak_cihaz_sayisi|default:"0" }}
+                                        </span>
+                                        <span class="text-xs text-blue-600 font-medium">Hedef</span>
+                                    </div>
+                                {% elif sutun.tip == 'kurulan' %}
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">
+                                            {{ veri.kurulan_cihaz_sayisi|default:"0" }}
+                                        </span>
+                                        <span class="text-xs text-green-600 font-medium">Tamamlanan</span>
+                                    </div>
+                                {% elif sutun.tip == 'arizali' %}
+                                    <div class="flex flex-col items-center gap-1">
+                                        <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-medium">
+                                            {{ veri.arizali_cihaz_sayisi|default:"0" }}
+                                        </span>
+                                        <span class="text-xs text-red-600 font-medium">Arızalı</span>
+                                    </div>
+                                {% elif sutun.tip == 'tamamlanma' %}
+                                    <div class="text-center">
+                                        <!-- Sadece Yüzdelik -->
+                                        <div class="text-lg font-bold 
+                                            {% if veri.tamamlanma_yuzdesi >= 80 %}text-green-600
+                                            {% elif veri.tamamlanma_yuzdesi >= 60 %}text-blue-600
+                                            {% elif veri.tamamlanma_yuzdesi >= 40 %}text-orange-600
+                                            {% else %}text-red-600{% endif %}">
+                                            %{{ veri.tamamlanma_yuzdesi|default:"0" }}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                            <td class="text-xs text-gray-500">{{ veri.olusturulma_tarihi|date:"d.m.Y H:i" }}</td>
+                            <td>
+                                {% if user.is_superuser %}
+                                <div class="flex gap-1">
+                                    <a href="{% url 'veri_yonetimi:veri_guncelle' veri.pk %}" 
+                                       class="btn btn-secondary text-xs">
+                                        ✏️ Düzenle
+                                    </a>
+                                    <button onclick="confirmDelete({{ veri.pk }}, 'Veri #{{ veri.pk }}')" 
+                                            class="btn btn-secondary text-xs bg-red-100 text-red-800 hover:bg-red-200">
+                                        🗑️ Sil
+                                    </button>
+                                </div>
+                                {% else %}
+                                <span class="text-gray-400 text-xs">Sadece görüntüleme</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Results Summary - Mini -->
+            <div class="mt-2 p-1 bg-green-50 rounded text-center">
+                <p class="text-green-800 font-medium text-xs">🎉 Toplam {{ veriler.count }} kayıt bulundu.</p>
+                {% if search_query %}
+                    <p class="text-green-600 text-xs mt-1">
+                        "<strong>{{ search_query }}</strong>" için arama sonuçları.
+                    </p>
+                {% endif %}
+            </div>
+        {% else %}
+            <!-- Empty State - Mini -->
+            <div class="text-center py-3">
+                <div class="text-2xl mb-1">📭</div>
+                <h3 class="text-sm font-semibold text-gray-800 mb-1">
+                    {% if search_query %}
+                        Arama sonucu bulunamadı
+                    {% else %}
+                        Henüz veri bulunmuyor
+                    {% endif %}
+                </h3>
+                <p class="text-gray-600 mb-2 text-xs">
+                    {% if search_query %}
+                        "<strong>{{ search_query }}</strong>" için sonuç bulunamadı.
+                    {% else %}
+                        İlk verinizi eklemek için aşağıdaki butona tıklayın.
+                    {% endif %}
+                </p>
+                <div class="flex flex-wrap justify-center gap-2">
+                    {% if search_query %}
+                        <a href="{% url 'veri_yonetimi:veri_listesi' %}" class="btn btn-secondary text-xs">
+                            🔍 Tüm Verileri Gör
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'veri_yonetimi:veri_ekle' %}" class="btn btn-primary text-xs">
+                        ➕ İlk Veriyi Ekle
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modern Delete Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 transition-all duration-300">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+            <!-- Header -->
+            <div class="relative p-6 border-b border-gray-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                        <span class="text-2xl">⚠️</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">Veri Silme Onayı</h3>
+                        <p class="text-sm text-gray-500 mt-1">Dikkatli olun!</p>
+                    </div>
+                </div>
+                
+                <!-- Close Button -->
+                <button onclick="closeDeleteModal()" class="absolute top-4 right-4 w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors">
+                    <span class="text-gray-600 text-lg">×</span>
+                </button>
+            </div>
+            
+            <!-- Content -->
+            <div class="p-6">
+                <div class="mb-6">
+                    <p class="text-gray-700 text-base leading-relaxed">
+                        "<span id="deleteItemName" class="font-bold text-gray-900"></span>" adlı veriyi kalıcı olarak silmek istediğinizden emin misiniz?
+                    </p>
+                    
+                    <!-- Warning Box -->
+                    <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <span class="text-red-600 text-sm">!</span>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-red-800 text-sm mb-1">Geri Alınamaz İşlem</h4>
+                                <p class="text-red-700 text-sm leading-relaxed">
+                                    Bu veri silindikten sonra geri getirilemez. Tüm ilişkili veriler de silinecektir.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex gap-3">
+                    <button onclick="closeDeleteModal()" 
+                            class="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all duration-200 hover:shadow-md active:scale-95">
+                        <span class="flex items-center justify-center gap-2">
+                            <span>❌</span>
+                            <span>İptal</span>
+                        </span>
+                    </button>
+                    
+                    <button id="confirmDeleteBtn" 
+                            class="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium rounded-xl transition-all duration-200 hover:shadow-lg active:scale-95 shadow-md">
+                        <span class="flex items-center justify-center gap-2">
+                            <span>🗑️</span>
+                            <span>Evet, Sil</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sorting function
+function toggleSort(sortField) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentSort = urlParams.get('sort');
+    const currentOrder = urlParams.get('order') || 'desc';
+    
+    let newOrder = 'asc';
+    if (currentSort === sortField) {
+        newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+    }
+    
+    urlParams.set('sort', sortField);
+    urlParams.set('order', newOrder);
+    window.location.search = urlParams.toString();
+}
+
+// Delete confirmation
+function confirmDelete(pk, itemName) {
+    document.getElementById('deleteItemName').textContent = itemName;
+    const modal = document.getElementById('deleteModal');
+    const modalContent = document.getElementById('modalContent');
+    
+    // Show modal with animation
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modalContent.classList.remove('scale-95', 'opacity-0');
+        modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+    
+    document.getElementById('confirmDeleteBtn').onclick = function() {
+        deleteItem(pk);
+    };
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    const modalContent = document.getElementById('modalContent');
+    
+    // Hide modal with animation
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    modalContent.classList.add('scale-95', 'opacity-0');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300);
+}
+
+function deleteItem(pk) {
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    const originalText = confirmBtn.innerHTML;
+    confirmBtn.innerHTML = '⏳ Siliniyor...';
+    confirmBtn.disabled = true;
+    
+    fetch(`/veri/veri/sil-onay/${pk}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Silme işlemi başarısız: ' + data.message);
+            confirmBtn.innerHTML = originalText;
+            confirmBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Bir hata oluştu.');
+        confirmBtn.innerHTML = originalText;
+        confirmBtn.disabled = false;
+    });
+    
+    closeDeleteModal();
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

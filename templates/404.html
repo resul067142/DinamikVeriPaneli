@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Sayfa Bulunamadı - 404{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
+    <div class="max-w-md w-full mx-auto text-center">
+        <!-- 404 Icon -->
+        <div class="mb-8">
+            <div class="text-9xl font-bold text-gray-300 mb-4">404</div>
+            <div class="text-6xl mb-6">😵</div>
+        </div>
+        
+        <!-- Error Message -->
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">
+            Sayfa Bulunamadı
+        </h1>
+        
+        <p class="text-lg text-gray-600 mb-8 leading-relaxed">
+            Aradığınız sayfa mevcut değil veya taşınmış olabilir. 
+            Lütfen URL'yi kontrol edin veya ana sayfaya dönün.
+        </p>
+        
+        <!-- Action Buttons -->
+        <div class="space-y-4">
+            <a href="{% url 'veri_yonetimi:veri_listesi' %}" 
+               class="btn-primary w-full text-center">
+                🏠 Ana Sayfaya Dön
+            </a>
+            
+            <button onclick="history.back()" 
+                    class="btn-secondary w-full text-center">
+                ⬅️ Geri Git
+            </button>
+        </div>
+        
+        <!-- Help Section -->
+        <div class="mt-12 p-6 bg-white/50 backdrop-blur-sm rounded-2xl border border-gray-200/50">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">💡 Yardım</h3>
+            <div class="text-sm text-gray-600 space-y-2">
+                <p>• URL'de yazım hatası olup olmadığını kontrol edin</p>
+                <p>• Sayfayı yeniden yüklemeyi deneyin</p>
+                <p>• Tarayıcı önbelleğini temizleyin</p>
+                <p>• Ana sayfadan istediğiniz bölüme gidin</p>
+            </div>
+        </div>
+        
+        <!-- Contact Info -->
+        <div class="mt-8 text-sm text-gray-500">
+            <p>Eğer bu bir hata olduğunu düşünüyorsanız,</p>
+            <p>lütfen sistem yöneticisi ile iletişime geçin.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

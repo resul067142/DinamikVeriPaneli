@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}DVP{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom CSS with !important to override Tailwind */
+        #sidebar {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 280px !important;
+            height: 100vh !important;
+            background: #1f2937 !important;
+            color: white !important;
+            z-index: 40 !important;
+            transition: transform 0.3s ease !important;
+            overflow-y: auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        #right-sidebar {
+            position: fixed !important;
+            right: 0 !important;
+            top: 0 !important;
+            width: 280px !important;
+            height: 100vh !important;
+            background: #f8fafc !important;
+            border-left: 1px solid #e2e8f0 !important;
+            z-index: 40 !important;
+            transition: transform 0.3s ease !important;
+            overflow-y: auto !important;
+        }
+
+        .main-content {
+            margin-left: 280px !important;
+            margin-right: 280px !important;
+            min-height: 100vh !important;
+            padding: 1rem !important;
+            background: #f1f5f9 !important;
+        }
+
+        .sidebar-overlay {
+            position: fixed !important;
+            inset: 0 !important;
+            background: rgba(0, 0, 0, 0.5) !important;
+            z-index: 30 !important;
+            display: none !important;
+        }
+
+        .card {
+            background: white !important;
+            border-radius: 0.5rem !important;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+            margin-bottom: 1rem !important;
+        }
+
+        .btn {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0.5rem 1rem !important;
+            border-radius: 0.375rem !important;
+            font-weight: 500 !important;
+            text-decoration: none !important;
+            transition: all 0.2s !important;
+            border: none !important;
+            cursor: pointer !important;
+            font-size: 0.875rem !important;
+        }
+
+        .btn-primary {
+            background: #3b82f6 !important;
+            color: white !important;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb !important;
+        }
+
+        .btn-secondary {
+            background: #6b7280 !important;
+            color: white !important;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563 !important;
+        }
+
+        .nav-link {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0.75rem 1rem !important;
+            color: #d1d5db !important;
+            text-decoration: none !important;
+            transition: all 0.2s !important;
+            border-radius: 0.375rem !important;
+            margin: 0.25rem 0.5rem !important;
+        }
+
+        .nav-link:hover {
+            background: #374151 !important;
+            color: white !important;
+        }
+
+        .nav-link.active {
+            background: #3b82f6 !important;
+            color: white !important;
+        }
+
+        .input {
+            width: 100% !important;
+            padding: 0.5rem !important;
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.375rem !important;
+            background: white !important;
+        }
+
+        .input:focus {
+            outline: none !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+        }
+
+        .table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.5rem !important;
+            text-align: left !important;
+            border-bottom: 1px solid #e5e7eb !important;
+        }
+
+        .table th {
+            background: #f9fafb !important;
+            font-weight: 600 !important;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 1024px) {
+            #sidebar {
+                transform: translateX(-100%) !important;
+            }
+            
+            #right-sidebar {
+                transform: translateX(100%) !important;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+            
+            #sidebar.show {
+                transform: translateX(0) !important;
+            }
+            
+            #right-sidebar.show {
+                transform: translateX(0) !important;
+            }
+        }
+
+        /* Stats cards in right sidebar */
+        .stat-card {
+            background: white !important;
+            border-radius: 0.5rem !important;
+            padding: 1rem !important;
+            margin-bottom: 1rem !important;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1) !important;
+            border-left: 4px solid #3b82f6 !important;
+        }
+
+        .stat-card h3 {
+            font-size: 0.875rem !important;
+            font-weight: 600 !important;
+            color: #374151 !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        .stat-value {
+            font-size: 1.5rem !important;
+            font-weight: 700 !important;
+            color: #1f2937 !important;
+        }
+
+        .stat-label {
+            font-size: 0.75rem !important;
+            color: #6b7280 !important;
+        }
+
+        .stat-icon {
+            font-size: 1.5rem !important;
+            margin-bottom: 0.5rem !important;
+        }
+
+        /* App Header Styles */
+        .app-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        }
+
+        .app-logo {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4) !important;
+        }
+
+        .app-name-card {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%) !important;
+            border: 1px solid #4a5568 !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .app-name-input {
+            background: #4a5568 !important;
+            border: 1px solid #718096 !important;
+            color: white !important;
+        }
+
+        .app-name-input:focus {
+            border-color: #63b3ed !important;
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.1) !important;
+        }
+
+        .app-edit-btn {
+            color: #63b3ed !important;
+            transition: color 0.2s ease !important;
+        }
+
+        .app-edit-btn:hover {
+            color: #90cdf4 !important;
+        }
+
+        .app-save-btn {
+            background: #38a169 !important;
+            transition: background-color 0.2s ease !important;
+        }
+
+        .app-save-btn:hover {
+            background: #48bb78 !important;
+        }
+
+        .app-cancel-btn {
+            background: #4a5568 !important;
+            transition: background-color 0.2s ease !important;
+        }
+
+        .app-cancel-btn:hover {
+            background: #718096 !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Left Sidebar -->
+    <div id="sidebar">
+        <!-- App Header Section -->
+        <div class="p-4 border-b border-gray-600 app-header">
+            <!-- App Logo and Title -->
+            <div class="text-center mb-6">
+                <div class="inline-block p-3 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-2xl shadow-lg mb-3 app-logo">
+                    <img id="sidebarLogo" src="https://via.placeholder.com/48x48/667eea/ffffff?text=📱" alt="App Logo" class="w-12 h-12 rounded-xl">
+                </div>
+                <h1 class="text-xl font-bold text-white mb-2" id="sidebarAppName">{{ app_name|default:"DVP" }}</h1>
+                <p class="text-xs text-gray-300" id="sidebarAppDesc">{{ app_description|default:"Dinamik Veri Paneli" }}</p>
+            </div>
+            
+            <!-- Editable App Name -->
+            <div class="bg-gradient-to-r from-gray-700 to-gray-800 rounded-xl p-3 border border-gray-600 app-name-card">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-gray-300 font-medium">Uygulama Adı</span>
+                    <button onclick="editAppName()" class="text-blue-400 hover:text-blue-300 text-xs app-edit-btn">
+                        ✏️ Düzenle
+                    </button>
+                </div>
+                <div id="appNameDisplay" class="text-white font-semibold text-sm truncate">
+                    {{ app_name|default:"Veri Yönetim Sistemi" }}
+                </div>
+                <div id="appNameEdit" class="hidden">
+                    <input type="text" 
+                           id="appNameInput" 
+                           value="{{ app_name|default:'Veri Yönetim Sistemi' }}" 
+                           class="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-sm focus:outline-none focus:border-blue-400 app-name-input"
+                           placeholder="Uygulama adını girin...">
+                    <div class="flex gap-1 mt-2">
+                        <button onclick="saveAppName()" class="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded app-save-btn">
+                            💾 Kaydet
+                        </button>
+                        <button onclick="cancelAppNameEdit()" class="px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded app-cancel-btn">
+                            ❌ İptal
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation Menu -->
+        <div class="p-4">
+            <nav class="space-y-2">
+                <a href="{% url 'veri_yonetimi:ana_sayfa' %}" class="nav-link {% if request.resolver_match.url_name == 'ana_sayfa' %}active{% endif %}">
+                    🏠 Ana Sayfa
+                </a>
+                <a href="{% url 'veri_yonetimi:veri_listesi' %}" class="nav-link {% if request.resolver_match.url_name == 'veri_listesi' %}active{% endif %}">
+                    📊 Veri Listesi
+                </a>
+                <a href="{% url 'veri_yonetimi:sutun_listesi' %}" class="nav-link {% if request.resolver_match.url_name == 'sutun_listesi' %}active{% endif %}">
+                    ⚙️ Sütun Yönetimi
+                </a>
+                {% if user.is_superuser %}
+                <a href="{% url 'veri_yonetimi:kullanici_listesi' %}" class="nav-link {% if request.resolver_match.url_name == 'kullanici_listesi' %}active{% endif %}">
+                    👥 Kullanıcı Yönetimi
+                </a>
+                <a href="{% url 'veri_yonetimi:kullanici_ekle' %}" class="nav-link {% if request.resolver_match.url_name == 'kullanici_ekle' %}active{% endif %}">
+                    ➕ Kullanıcı Ekle
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+        
+        <!-- User Profile Section - Bottom -->
+        <div class="mt-auto p-4 border-t border-gray-600">
+            <!-- User Info -->
+            <div class="flex items-center space-x-3 mb-4">
+                <!-- Profile Photo -->
+                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    {% if user.first_name and user.last_name %}
+                        {{ user.first_name|first }}{{ user.last_name|first }}
+                    {% else %}
+                        {{ user.username|first|upper }}
+                    {% endif %}
+                </div>
+                
+                <!-- User Details -->
+                <div class="flex-1 min-w-0">
+                    <div class="text-white font-semibold text-sm truncate">
+                        {% if user.first_name and user.last_name %}
+                            {{ user.first_name }} {{ user.last_name }}
+                        {% else %}
+                            {{ user.username }}
+                        {% endif %}
+                    </div>
+                    <div class="text-gray-300 text-xs">
+                        {% if user.is_superuser %}
+                            👑 Süper Admin
+                        {% else %}
+                            👤 Kullanıcı
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- User Actions -->
+            <div class="space-y-2 mb-4">
+                <button onclick="showUserSettings()" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-colors text-sm flex items-center gap-2">
+                    ⚙️ Kullanıcı Ayarları
+                </button>
+                <button onclick="showChangePassword()" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-colors text-sm flex items-center gap-2">
+                    🔒 Şifre Değiştir
+                </button>
+                <button onclick="showUserProfile()" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-colors text-sm flex items-center gap-2">
+                    👤 Profil Bilgileri
+                </button>
+                {% if user.is_superuser %}
+                <button onclick="showSystemSettings()" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-colors text-sm flex items-center gap-2">
+                    🛠️ Sistem Ayarları
+                </button>
+                {% endif %}
+            </div>
+            
+            <!-- User Status -->
+            <div class="bg-gray-700 rounded-lg p-3 mb-4">
+                <div class="flex items-center justify-between text-xs mb-2">
+                    <span class="text-gray-300">Durum:</span>
+                    <span class="text-green-400 flex items-center">
+                        <span class="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                        Aktif
+                    </span>
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                    <span class="text-gray-300">Son Giriş:</span>
+                    <span class="text-gray-300">{{ user.last_login|date:"d.m.Y"|default:"İlk giriş" }}</span>
+                </div>
+            </div>
+            
+            <!-- Logout Button -->
+            <a href="{% url 'veri_yonetimi:user_logout' %}" class="w-full block text-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium">
+                🚪 Çıkış Yap
+            </a>
+        </div>
+    </div>
+
+    <!-- Right Sidebar - Statistics -->
+    <div id="right-sidebar">
+        <div class="p-4">
+            <h2 class="text-lg font-bold text-gray-800 mb-4 text-center">📈 İstatistikler</h2>
+            
+            <!-- Quick Stats -->
+            <div class="stat-card">
+                <div class="stat-icon text-blue-600">📊</div>
+                <div class="stat-value text-blue-600">{{ veriler.count|default:"0" }}</div>
+                <div class="stat-label">Toplam Veri</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon text-green-600">🏙️</div>
+                <div class="stat-value text-green-600">81</div>
+                <div class="stat-label">Toplam İl</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon text-purple-600">⚙️</div>
+                <div class="stat-value text-purple-600">{{ aktif_sutunlar.count|default:"0" }}</div>
+                <div class="stat-label">Aktif Sütun</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon text-orange-600">👥</div>
+                <div class="stat-value text-orange-600">{{ user_count|default:"0" }}</div>
+                <div class="stat-label">Kullanıcı</div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="mt-6">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">🕒 Son Aktiviteler</h3>
+                <div class="space-y-2">
+                    {% if son_veriler %}
+                        {% for veri in son_veriler|slice:":3" %}
+                        <div class="text-xs text-gray-600 p-2 bg-gray-50 rounded">
+                            <div class="font-medium">Veri #{{ veri.id }}</div>
+                            <div class="text-gray-500">{{ veri.olusturulma_tarihi|date:"d.m H:i" }}</div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-xs text-gray-500 text-center py-2">
+                            Henüz aktivite yok
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="mt-6">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">🟢 Sistem Durumu</h3>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-gray-600">Veritabanı</span>
+                        <span class="text-green-600">● Aktif</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-gray-600">Cache</span>
+                        <span class="text-green-600">● Aktif</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-gray-600">Kullanıcı</span>
+                        <span class="text-blue-600">● {{ user.username }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Mobile Sidebar Toggle -->
+    <button id="sidebarToggle" class="fixed top-4 left-4 z-50 lg:hidden bg-gray-800 text-white p-2 rounded">
+        ☰
+    </button>
+
+    <!-- Mobile Right Sidebar Toggle -->
+    <button id="rightSidebarToggle" class="fixed top-4 right-4 z-50 lg:hidden bg-blue-600 text-white p-2 rounded">
+        📊
+    </button>
+
+    <!-- Overlay -->
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+    <script>
+        // Sidebar toggle functionality
+        const sidebar = document.getElementById('sidebar');
+        const rightSidebar = document.getElementById('right-sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const rightSidebarToggle = document.getElementById('rightSidebarToggle');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('show');
+            overlay.style.display = sidebar.classList.contains('show') ? 'block' : 'none';
+        }
+
+        function toggleRightSidebar() {
+            rightSidebar.classList.toggle('show');
+            overlay.style.display = rightSidebar.classList.contains('show') ? 'block' : 'none';
+        }
+
+        function closeSidebars() {
+            sidebar.classList.remove('show');
+            rightSidebar.classList.remove('show');
+            overlay.style.display = 'none';
+        }
+
+        // Event listeners
+        sidebarToggle.addEventListener('click', toggleSidebar);
+        rightSidebarToggle.addEventListener('click', toggleRightSidebar);
+        overlay.addEventListener('click', closeSidebars);
+
+        // Close sidebars on window resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) {
+                closeSidebars();
+            }
+        });
+
+        // Initialize sidebar state
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.innerWidth >= 1024) {
+                sidebar.style.transform = 'translateX(0)';
+                rightSidebar.style.transform = 'translateX(0)';
+            }
+        });
+
+        // User Profile Functions
+        function showUserSettings() {
+            alert('Kullanıcı Ayarları\n\nBu özellik yakında eklenecek!\n\n• Profil düzenleme\n• Bildirim ayarları\n• Tema seçenekleri\n• Dil ayarları');
+        }
+
+        function showChangePassword() {
+            const newPassword = prompt('Yeni şifrenizi girin:');
+            if (newPassword) {
+                const confirmPassword = prompt('Yeni şifrenizi tekrar girin:');
+                if (newPassword === confirmPassword) {
+                    if (newPassword.length >= 6) {
+                        alert('Şifre değiştirme başarılı!\n\nYeni şifreniz: ' + newPassword + '\n\nNot: Bu demo versiyonudur. Gerçek uygulamada şifre veritabanına kaydedilir.');
+                    } else {
+                        alert('Hata: Şifre en az 6 karakter olmalıdır!');
+                    }
+                } else {
+                    alert('Hata: Şifreler eşleşmiyor!');
+                }
+            }
+        }
+
+        function showUserProfile() {
+            const userInfo = `👤 Kullanıcı Profili\n\n` +
+                           `Ad: ${document.querySelector('#sidebar .text-white.font-semibold').textContent}\n` +
+                           `Kullanıcı Adı: {{ user.username }}\n` +
+                           `E-posta: {{ user.email|default:"Belirtilmemiş" }}\n` +
+                           `Son Giriş: {{ user.last_login|date:"d.m.Y H:i"|default:"İlk giriş" }}\n` +
+                           `Üyelik Tarihi: {{ user.date_joined|date:"d.m.Y" }}\n\n` +
+                           `Bu bilgileri düzenlemek için Kullanıcı Ayarları\'nı kullanın.`;
+            
+            alert(userInfo);
+        }
+
+        function showSystemSettings() {
+            const systemInfo = `🛠️ Sistem Ayarları\n\n` +
+                             `Sistem Versiyonu: 1.0.0\n` +
+                             `Django Versiyonu: 4.2.10\n` +
+                             `Veritabanı: SQLite\n` +
+                             `Sunucu: Development\n\n` +
+                             `Bu özellik sadece süper admin kullanıcıları için mevcuttur.`;
+            
+            alert(systemInfo);
+        }
+
+        // App Name Editing Functions
+        function editAppName() {
+            const appNameDisplay = document.getElementById('appNameDisplay');
+            const appNameEdit = document.getElementById('appNameEdit');
+            const appNameInput = document.getElementById('appNameInput');
+            
+            if (appNameDisplay && appNameEdit && appNameInput) {
+                appNameDisplay.classList.add('hidden');
+                appNameEdit.classList.remove('hidden');
+                appNameInput.focus();
+                appNameInput.select(); // Tüm metni seç
+            }
+        }
+
+        function saveAppName() {
+            const appNameDisplay = document.getElementById('appNameDisplay');
+            const appNameEdit = document.getElementById('appNameEdit');
+            const appNameInput = document.getElementById('appNameInput');
+            
+            if (appNameDisplay && appNameEdit && appNameInput) {
+                const newAppName = appNameInput.value.trim();
+                if (newAppName) {
+                    // LocalStorage'a kaydet
+                    localStorage.setItem('appName', newAppName);
+                    
+                    // Display'i güncelle
+                    appNameDisplay.textContent = newAppName;
+                    
+                    // Edit modunu kapat
+                    appNameEdit.classList.add('hidden');
+                    appNameDisplay.classList.remove('hidden');
+                    
+                    // Başarı mesajı göster
+                    showAppNotification('✅ Uygulama adı başarıyla değiştirildi!', 'success');
+                    
+                    // Sayfa başlığını da güncelle
+                    document.title = newAppName + ' - DVP';
+                } else {
+                    showAppNotification('❌ Uygulama adı boş bırakılamaz!', 'error');
+                }
+            }
+        }
+
+        function cancelAppNameEdit() {
+            const appNameDisplay = document.getElementById('appNameDisplay');
+            const appNameEdit = document.getElementById('appNameEdit');
+            const appNameInput = document.getElementById('appNameInput');
+            
+            if (appNameDisplay && appNameEdit && appNameInput) {
+                // Input değerini mevcut display değerine sıfırla
+                appNameInput.value = appNameDisplay.textContent;
+                
+                // Edit modunu kapat
+                appNameEdit.classList.add('hidden');
+                appNameDisplay.classList.remove('hidden');
+            }
+        }
+
+        function showAppNotification(message, type = 'info') {
+            // Mevcut notification'ı kaldır
+            const existingNotification = document.getElementById('appNotification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+            
+            // Yeni notification oluştur
+            const notification = document.createElement('div');
+            notification.id = 'appNotification';
+            notification.className = `fixed top-4 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300 ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            notification.textContent = message;
+            
+            // Sayfaya ekle
+            document.body.appendChild(notification);
+            
+            // 3 saniye sonra kaldır
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translate(-50%, -20px)';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Page load enhancements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved app settings from localStorage
+            const savedSettings = localStorage.getItem('appSettings');
+            if (savedSettings) {
+                try {
+                    const appSettings = JSON.parse(savedSettings);
+                    
+                    // Update sidebar app name
+                    const sidebarAppName = document.getElementById('sidebarAppName');
+                    if (sidebarAppName && appSettings.app_name) {
+                        sidebarAppName.textContent = appSettings.app_name;
+                    }
+                    
+                    // Update sidebar app description
+                    const sidebarAppDesc = document.getElementById('sidebarAppDesc');
+                    if (sidebarAppDesc && appSettings.app_description) {
+                        sidebarAppDesc.textContent = appSettings.app_description;
+                    }
+                    
+                    // Update sidebar logo
+                    if (appSettings.app_logo) {
+                        const sidebarLogo = document.getElementById('sidebarLogo');
+                        if (sidebarLogo) {
+                            sidebarLogo.src = appSettings.app_logo;
+                        }
+                    }
+                    
+                    // Update app name display in card
+                    const appNameDisplay = document.getElementById('appNameDisplay');
+                    if (appNameDisplay && appSettings.app_name) {
+                        appNameDisplay.textContent = appSettings.app_name;
+                    }
+                    
+                    // Update page title
+                    if (appSettings.app_name) {
+                        document.title = appSettings.app_name + ' - DVP';
+                    }
+                    
+                } catch (e) {
+                    console.error('Kaydedilmiş app ayarları yüklenemedi:', e);
+                }
+            }
+            
+            // Fallback to Django session data if localStorage is empty
+            if (!savedSettings) {
+                const sidebarAppName = document.getElementById('sidebarAppName');
+                const sidebarAppDesc = document.getElementById('sidebarAppDesc');
+                if (sidebarAppName && sidebarAppDesc) {
+                    // Check if app settings are in session (from Django)
+                    const appName = '{{ app_name|default:"DVP" }}';
+                    const appDesc = '{{ app_description|default:"Dinamik Veri Paneli" }}';
+                    
+                    if (appName && appName !== 'DVP') {
+                        sidebarAppName.textContent = appName;
+                        sidebarAppDesc.textContent = appDesc;
+                    }
+                }
+            }
+            
+            // Add hover effects to table rows
+            const tableRows = document.querySelectorAll('tbody tr');
+            tableRows.forEach(row => {
+                row.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.01)';
+                });
+                
+                row.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+            
+            // Add focus effects to inputs
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'scale(1.02)';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'scale(1)';
+                });
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
