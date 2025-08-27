@@ -980,3 +980,110 @@ def cihaz_turleri(request):
     }
     
     return render(request, 'veri_yonetimi/cihaz_turleri.html', context)
+
+
+@login_required
+def illere_gore_cihaz_turleri(request):
+    """
+    İllere göre cihaz türleri detay sayfasını göster
+    """
+    # Tüm illeri al
+    tum_iller = AnaVeri.objects.all().order_by('il_adi')
+    
+    # Cihaz türleri tanımları
+    cihaz_turleri = [
+        {
+            'id': 'surucu_kamera',
+            'ad': 'Sürücü Analiz Kamerası',
+            'icon': '📹',
+            'renk': 'blue',
+            'kategori': 'Güvenlik'
+        },
+        {
+            'id': 'ats_takip',
+            'ad': 'ATS Araç Takip Sistemi',
+            'icon': '🚗',
+            'renk': 'green',
+            'kategori': 'Takip'
+        },
+        {
+            'id': 'gps_konum',
+            'ad': 'GPS Konum Takip',
+            'icon': '📍',
+            'renk': 'purple',
+            'kategori': 'Navigasyon'
+        },
+        {
+            'id': 'yakit_takip',
+            'ad': 'Yakıt Takip Sistemi',
+            'icon': '⛽',
+            'renk': 'orange',
+            'kategori': 'Maliyet'
+        },
+        {
+            'id': 'motor_monitor',
+            'ad': 'Motor Performans Monitörü',
+            'icon': '⚙️',
+            'renk': 'red',
+            'kategori': 'Teknik'
+        },
+        {
+            'id': 'hiz_sensor',
+            'ad': 'Hız ve Mesafe Sensörü',
+            'icon': '🏃',
+            'renk': 'indigo',
+            'kategori': 'Güvenlik'
+        }
+    ]
+    
+    # İl bazında cihaz türleri verileri
+    il_cihaz_verileri = []
+    
+    for il in tum_iller:
+        # Her il için cihaz türleri verilerini oluştur
+        il_cihaz_data = {
+            'il': il,
+            'plaka': il.plaka if hasattr(il, 'plaka') else 'N/A',
+            'il_adi': il.il_adi,
+            'cihaz_turleri': []
+        }
+        
+        for cihaz_tur in cihaz_turleri:
+            # Her cihaz türü için rastgele veri oluştur (gerçek projede veritabanından gelecek)
+            import random
+            kurulacak = random.randint(50, 200)
+            kurulan = random.randint(20, kurulacak)
+            arizali = random.randint(0, 20)
+            tamamlanma = round((kurulan / kurulacak * 100), 1) if kurulacak > 0 else 0
+            
+            il_cihaz_data['cihaz_turleri'].append({
+                'tur': cihaz_tur,
+                'kurulacak': kurulacak,
+                'kurulan': kurulan,
+                'arizali': arizali,
+                'tamamlanma': tamamlanma,
+                'durum_renk': 'green' if tamamlanma >= 80 else 'yellow' if tamamlanma >= 60 else 'red'
+            })
+        
+        il_cihaz_verileri.append(il_cihaz_data)
+    
+    # Genel istatistikler
+    toplam_il = len(il_cihaz_verileri)
+    toplam_cihaz_turu = len(cihaz_turleri)
+    
+    # En iyi performans gösteren il
+    en_iyi_il = max(il_cihaz_verileri, key=lambda x: sum(ct['tamamlanma'] for ct in x['cihaz_turleri']))
+    
+    # En kötü performans gösteren il
+    en_kotu_il = min(il_cihaz_verileri, key=lambda x: sum(ct['tamamlanma'] for ct in x['cihaz_turleri']))
+    
+    context = {
+        'il_cihaz_verileri': il_cihaz_verileri,
+        'cihaz_turleri': cihaz_turleri,
+        'toplam_il': toplam_il,
+        'toplam_cihaz_turu': toplam_cihaz_turu,
+        'en_iyi_il': en_iyi_il,
+        'en_kotu_il': en_kotu_il,
+    }
+    
+    return render(request, 'veri_yonetimi/illere_gore_cihaz_turleri.html', context)

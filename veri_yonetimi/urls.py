@@ -35,4 +35,5 @@ urlpatterns = [
     # Site ayarları
     path('update-app-settings/', views.update_app_settings, name='update_app_settings'),
     path('cihaz-turleri/', views.cihaz_turleri, name='cihaz_turleri'),
+    path('illere-gore-cihaz-turleri/', views.illere_gore_cihaz_turleri, name='illere_gore_cihaz_turleri'),
 ]
