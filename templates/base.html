@@ -266,8 +266,8 @@
                 </div>
                 <h1 class="text-xl font-bold text-white mb-2" id="sidebarAppName">{{ app_name|default:"DVP" }}</h1>
                 <p class="text-xs text-gray-300" id="sidebarAppDesc">{{ app_description|default:"Dinamik Veri Paneli" }}</p>
-            </div>
-            
+        </div>
+
             <!-- Editable App Name -->
             <div class="bg-gradient-to-r from-gray-700 to-gray-800 rounded-xl p-3 border border-gray-600 app-name-card">
                 <div class="flex items-center justify-between mb-2">
@@ -293,10 +293,10 @@
                             ❌ İptal
                         </button>
                     </div>
-                </div>
             </div>
         </div>
-        
+    </div>
+
         <!-- Navigation Menu -->
         <div class="p-4">
             <nav class="space-y-2">
@@ -305,6 +305,9 @@
                 </a>
                 <a href="{% url 'veri_yonetimi:veri_listesi' %}" class="nav-link {% if request.resolver_match.url_name == 'veri_listesi' %}active{% endif %}">
                     📊 Veri Listesi
+                </a>
+                <a href="{% url 'veri_yonetimi:cihaz_turleri' %}" class="nav-link {% if request.resolver_match.url_name == 'cihaz_turleri' %}active{% endif %}">
+                    📱 Cihaz Türleri
                 </a>
                 <a href="{% url 'veri_yonetimi:sutun_listesi' %}" class="nav-link {% if request.resolver_match.url_name == 'sutun_listesi' %}active{% endif %}">
                     ⚙️ Sütun Yönetimi
@@ -319,7 +322,7 @@
                 {% endif %}
             </nav>
         </div>
-        
+
         <!-- User Profile Section - Bottom -->
         <div class="mt-auto p-4 border-t border-gray-600">
             <!-- User Info -->
@@ -338,10 +341,10 @@
                     <div class="text-white font-semibold text-sm truncate">
                         {% if user.first_name and user.last_name %}
                             {{ user.first_name }} {{ user.last_name }}
-                        {% else %}
+                            {% else %}
                             {{ user.username }}
-                        {% endif %}
-                    </div>
+                            {% endif %}
+                        </div>
                     <div class="text-gray-300 text-xs">
                         {% if user.is_superuser %}
                             👑 Süper Admin
@@ -382,8 +385,8 @@
                 <div class="flex items-center justify-between text-xs">
                     <span class="text-gray-300">Son Giriş:</span>
                     <span class="text-gray-300">{{ user.last_login|date:"d.m.Y"|default:"İlk giriş" }}</span>
-                </div>
             </div>
+        </div>
             
             <!-- Logout Button -->
             <a href="{% url 'veri_yonetimi:user_logout' %}" class="w-full block text-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium">
@@ -743,7 +746,7 @@
             });
         });
     </script>
-
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

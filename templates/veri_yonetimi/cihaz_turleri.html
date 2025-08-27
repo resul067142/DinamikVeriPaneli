@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+
+{% block title %}Cihaz Türleri - {{ app_name|default:"DVP" }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">📱 Cihaz Türleri</h1>
+            <p class="text-gray-600 mt-1">Sistemdeki tüm cihaz türlerini ve kurulum durumlarını görüntüleyin</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
+                <span class="text-sm text-blue-600">Toplam: {{ toplam_cihaz }} cihaz</span>
+            </div>
+            <div class="bg-green-50 px-4 py-2 rounded-lg border border-green-200">
+                <span class="text-sm text-green-600">Hedef: {{ toplam_hedef }} cihaz</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Genel İstatistikler -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Genel Tamamlanma</p>
+                    <p class="text-2xl font-bold text-blue-600">%{{ genel_tamamlanma }}</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span class="text-xl">📊</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">En Popüler Cihaz</p>
+                    <p class="text-lg font-bold text-green-600">{{ en_populer.ad }}</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <span class="text-xl">{{ en_populer.icon }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Aktif Cihaz Türleri</p>
+                    <p class="text-2xl font-bold text-purple-600">{{ cihaz_turleri|length }}</p>
+                </div>
+                <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                    <span class="text-xl">✅</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Ortalama Tamamlanma</p>
+                    <p class="text-2xl font-bold text-orange-600">%68.3</p>
+                </div>
+                <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                    <span class="text-xl">📈</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cihaz Türleri Tablosu -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-800">Cihaz Türleri Listesi</h2>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cihaz</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kurulum</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hedef</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tamamlanma</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for cihaz in cihaz_turleri %}
+                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mr-3">
+                                    <span class="text-lg">{{ cihaz.icon }}</span>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">{{ cihaz.ad }}</div>
+                                    <div class="text-sm text-gray-500">{{ cihaz.aciklama }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                                {% if cihaz.kategori == 'Güvenlik' %}bg-red-100 text-red-800
+                                {% elif cihaz.kategori == 'Takip' %}bg-blue-100 text-blue-800
+                                {% elif cihaz.kategori == 'Navigasyon' %}bg-purple-100 text-purple-800
+                                {% elif cihaz.kategori == 'Maliyet' %}bg-orange-100 text-orange-800
+                                {% elif cihaz.kategori == 'Teknik' %}bg-red-100 text-red-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ cihaz.kategori }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                {{ cihaz.durum }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ cihaz.kurulum_sayisi }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {{ cihaz.hedef_sayisi }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="w-20 bg-gray-200 rounded-full h-2 mr-2">
+                                    <div class="h-2 rounded-full transition-all duration-300
+                                        {% if cihaz.tamamlanma_yuzdesi >= 80 %}bg-green-500
+                                        {% elif cihaz.tamamlanma_yuzdesi >= 60 %}bg-blue-500
+                                        {% elif cihaz.tamamlanma_yuzdesi >= 40 %}bg-yellow-500
+                                        {% else %}bg-red-500{% endif %}"
+                                         style="width: {{ cihaz.tamamlanma_yuzdesi }}%">
+                                    </div>
+                                </div>
+                                <span class="text-sm font-medium text-gray-900">%{{ cihaz.tamamlanma_yuzdesi }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex space-x-2">
+                                <button class="text-blue-600 hover:text-blue-900 transition-colors duration-200">
+                                    ✏️ Düzenle
+                                </button>
+                                <button class="text-green-600 hover:text-green-900 transition-colors duration-200">
+                                    📊 Detay
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Cihaz Türleri Kartları (Mobil Görünüm) -->
+    <div class="lg:hidden space-y-4">
+        {% for cihaz in cihaz_turleri %}
+        <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mr-3">
+                        <span class="text-xl">{{ cihaz.icon }}</span>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900">{{ cihaz.ad }}</h3>
+                        <p class="text-sm text-gray-500">{{ cihaz.aciklama }}</p>
+                    </div>
+                </div>
+                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
+                    {% if cihaz.kategori == 'Güvenlik' %}bg-red-100 text-red-800
+                    {% elif cihaz.kategori == 'Takip' %}bg-blue-100 text-blue-800
+                    {% elif cihaz.kategori == 'Navigasyon' %}bg-purple-100 text-purple-800
+                    {% elif cihaz.kategori == 'Maliyet' %}bg-orange-100 text-orange-800
+                    {% elif cihaz.kategori == 'Teknik' %}bg-red-100 text-red-800
+                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ cihaz.kategori }}
+                </span>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mb-3">
+                <div class="text-center">
+                    <p class="text-xs text-gray-500">Kurulum</p>
+                    <p class="text-lg font-bold text-gray-900">{{ cihaz.kurulum_sayisi }}</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-xs text-gray-500">Hedef</p>
+                    <p class="text-lg font-bold text-gray-900">{{ cihaz.hedef_sayisi }}</p>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <div class="flex justify-between text-sm text-gray-600 mb-1">
+                    <span>Tamamlanma</span>
+                    <span>%{{ cihaz.tamamlanma_yuzdesi }}</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="h-2 rounded-full transition-all duration-300
+                        {% if cihaz.tamamlanma_yuzdesi >= 80 %}bg-green-500
+                        {% elif cihaz.tamamlanma_yuzdesi >= 60 %}bg-blue-500
+                        {% elif cihaz.tamamlanma_yuzdesi >= 40 %}bg-yellow-500
+                        {% else %}bg-red-500{% endif %}"
+                         style="width: {{ cihaz.tamamlanma_yuzdesi }}%">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex space-x-2">
+                <button class="flex-1 bg-blue-100 text-blue-700 py-2 px-3 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors duration-200">
+                    ✏️ Düzenle
+                </button>
+                <button class="flex-1 bg-green-100 text-green-700 py-2 px-3 rounded-lg text-sm font-medium hover:bg-green-200 transition-colors duration-200">
+                    📊 Detay
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+

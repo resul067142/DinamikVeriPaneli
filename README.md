@@ -529,3 +529,66 @@ Bu proje **MIT License** altında lisanslanmıştır. Detaylar için [LICENSE](L
 ⭐ **Bu projeyi beğendiyseniz yıldız vermeyi unutmayın!** ⭐
 
 **Dinamik Veri Paneli** - Modern veri yönetimi çözümü 🚀
+
+## 🚀 Hızlı Başlangıç - Proje Çalıştırma
+
+### 📋 Basit Proje Çalıştırma Aşamaları
+
+#### 1. **Proje Dizinine Git**
+```bash
+cd /Users/Admin/Desktop/81tablo4
+```
+
+#### 2. **Virtual Environment'ı Aktif Et**
+```bash
+source venv/bin/activate
+```
+
+#### 3. **Django Development Server'ı Başlat**
+```bash
+python manage.py runserver
+```
+
+#### 4. **Tek Satırda Çalıştırma (Önerilen)**
+```bash
+cd /Users/Admin/Desktop/81tablo4 && source venv/bin/activate && python manage.py runserver
+```
+
+### 🌐 Erişim Bilgileri
+- **URL:** http://127.0.0.1:8000/ veya http://localhost:8000/
+- **Port:** 8000
+
+### ⚠️ Önemli Notlar
+- Server'ı durdurmak için terminal'de `CONTROL-C` tuşlarına basın
+- Virtual environment aktif olduğunda terminal prompt'unda `(venv)` görünür
+- İlk çalıştırmada gerekli bağımlılıklar yüklenmiş olmalı
+
+### 🔧 Ek Komutlar
+
+#### Veritabanı İşlemleri
+```bash
+# Migrations oluştur
+python manage.py makemigrations
+
+# Migrations uygula
+python manage.py migrate
+
+# Superuser oluştur
+python manage.py createsuperuser
+```
+
+#### Statik Dosyalar
+```bash
+# Statik dosyaları topla
+python manage.py collectstatic
+```
+
+#### Shell
+```bash
+# Django shell'i aç
+python manage.py shell
+```
+
+---
+
+## 📝 Katkıda Bulunma

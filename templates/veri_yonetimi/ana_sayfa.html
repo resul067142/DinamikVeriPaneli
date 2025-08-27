@@ -208,27 +208,97 @@
         </div>
 
         <!-- Grafik 3: Cihaz Türleri -->
-        <div class="card p-3 bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200">
-            <div class="flex items-center justify-between mb-2">
-                <h3 class="text-xs font-semibold text-purple-800">📱 Cihaz Türleri</h3>
-                <div class="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded-full">3 Kategori</div>
+        <div class="card p-4 bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-base font-bold text-purple-800">📱 Cihaz Türleri</h3>
+                <div class="text-sm text-purple-600 bg-purple-100 px-3 py-1 rounded-full font-medium">6 Kategori</div>
             </div>
-            <div class="h-20 flex items-center justify-center">
-                <div class="grid grid-cols-3 gap-2 w-full">
-                    <div class="bg-purple-300 rounded h-14 flex items-center justify-center">
-                        <span class="text-xs text-purple-800 font-bold">A</span>
+            
+            <!-- Cihaz Türleri Grid -->
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <!-- Sürücü Analiz Kamerası -->
+                <div class="bg-white rounded-xl p-3 border-2 border-purple-200 hover:border-purple-400 transition-all duration-300 hover:shadow-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                            <span class="text-2xl">📹</span>
+                        </div>
+                        <div>
+                            <div class="font-bold text-purple-800 text-sm">Sürücü Analiz</div>
+                            <div class="text-xs text-purple-600">Kamera Sistemi</div>
+                        </div>
                     </div>
-                    <div class="bg-purple-400 rounded h-16 flex items-center justify-center">
-                        <span class="text-xs text-purple-800 font-bold">B</span>
+                </div>
+
+                <!-- ATS Araç Takip -->
+                <div class="bg-white rounded-xl p-3 border-2 border-purple-200 hover:border-purple-400 transition-all duration-300 hover:shadow-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                            <span class="text-2xl">🚗</span>
+                        </div>
+                        <div>
+                            <div class="font-bold text-purple-800 text-sm">ATS Takip</div>
+                            <div class="text-xs text-purple-600">Araç Sistemi</div>
+                        </div>
                     </div>
-                    <div class="bg-purple-500 rounded h-10 flex items-center justify-center">
-                        <span class="text-xs text-purple-800 font-bold">C</span>
+                </div>
+
+                <!-- GPS Konum -->
+                <div class="bg-white rounded-xl p-3 border-2 border-purple-200 hover:border-purple-400 transition-all duration-300 hover:shadow-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                            <span class="text-2xl">📍</span>
+                        </div>
+                        <div>
+                            <div class="font-bold text-purple-800 text-sm">GPS Konum</div>
+                            <div class="text-xs text-purple-600">Takip Sistemi</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Yakıt Takip -->
+                <div class="bg-white rounded-xl p-3 border-2 border-purple-200 hover:border-purple-400 transition-all duration-300 hover:shadow-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                            <span class="text-2xl">⛽</span>
+                        </div>
+                        <div>
+                            <div class="font-bold text-purple-800 text-sm">Yakıt Takip</div>
+                            <div class="text-xs text-purple-600">Maliyet Sistemi</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Motor Monitör -->
+                <div class="bg-white rounded-xl p-3 border-2 border-purple-200 hover:border-purple-400 transition-all duration-300 hover:shadow-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                            <span class="text-2xl">⚙️</span>
+                        </div>
+                        <div>
+                            <div class="font-bold text-purple-800 text-sm">Motor Monitör</div>
+                            <div class="text-xs text-purple-600">Performans Sistemi</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hız Sensör -->
+                <div class="bg-white rounded-xl p-3 border-2 border-purple-200 hover:border-purple-400 transition-all duration-300 hover:shadow-lg">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                            <span class="text-2xl">🏃</span>
+                        </div>
+                        <div>
+                            <div class="font-bold text-purple-800 text-sm">Hız Sensör</div>
+                            <div class="text-xs text-purple-600">Güvenlik Sistemi</div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="text-center mt-1">
-                <div class="text-base font-bold text-purple-700">%65</div>
-                <div class="text-xs text-purple-600">A Tipi</div>
+
+            <!-- İstatistik -->
+            <div class="text-center bg-white rounded-lg p-3 border border-purple-200">
+                <div class="text-xl font-bold text-purple-700">%78</div>
+                <div class="text-sm text-purple-600 font-medium">Sürücü Analiz Kamerası - En Popüler</div>
             </div>
         </div>
 

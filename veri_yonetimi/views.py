@@ -881,3 +881,102 @@ def generate_valid_tc():
         # Benzersizlik kontrolü
         if not UserProfile.objects.filter(tc_kimlik=tc).exists():
             return tc
+
+@login_required
+def cihaz_turleri(request):
+    """
+    Cihaz türleri sayfasını göster
+    """
+    # Cihaz türleri verileri
+    cihaz_turleri_data = [
+        {
+            'id': 1,
+            'ad': 'Sürücü Analiz Kamerası',
+            'aciklama': 'Sürücü davranışlarını analiz eden kamera sistemi',
+            'kategori': 'Güvenlik',
+            'durum': 'Aktif',
+            'kurulum_sayisi': 1250,
+            'hedef_sayisi': 2000,
+            'tamamlanma_yuzdesi': 62.5,
+            'icon': '📹',
+            'renk': 'blue'
+        },
+        {
+            'id': 2,
+            'ad': 'ATS Araç Takip Sistemi',
+            'aciklama': 'Araç konum ve durum takip sistemi',
+            'kategori': 'Takip',
+            'durum': 'Aktif',
+            'kurulum_sayisi': 980,
+            'hedef_sayisi': 1500,
+            'tamamlanma_yuzdesi': 65.3,
+            'icon': '🚗',
+            'renk': 'green'
+        },
+        {
+            'id': 3,
+            'ad': 'GPS Konum Takip',
+            'aciklama': 'Hassas konum belirleme ve rota takibi',
+            'kategori': 'Navigasyon',
+            'durum': 'Aktif',
+            'kurulum_sayisi': 2100,
+            'hedef_sayisi': 2500,
+            'tamamlanma_yuzdesi': 84.0,
+            'icon': '📍',
+            'renk': 'purple'
+        },
+        {
+            'id': 4,
+            'ad': 'Yakıt Takip Sistemi',
+            'aciklama': 'Yakıt tüketimi ve maliyet takibi',
+            'kategori': 'Maliyet',
+            'durum': 'Aktif',
+            'kurulum_sayisi': 750,
+            'hedef_sayisi': 1200,
+            'tamamlanma_yuzdesi': 62.5,
+            'icon': '⛽',
+            'renk': 'orange'
+        },
+        {
+            'id': 5,
+            'ad': 'Motor Performans Monitörü',
+            'aciklama': 'Motor sağlığı ve performans takibi',
+            'kategori': 'Teknik',
+            'durum': 'Aktif',
+            'kurulum_sayisi': 680,
+            'hedef_sayisi': 1000,
+            'tamamlanma_yuzdesi': 68.0,
+            'icon': '⚙️',
+            'renk': 'red'
+        },
+        {
+            'id': 6,
+            'ad': 'Hız ve Mesafe Sensörü',
+            'aciklama': 'Hız limiti ve güvenlik uyarıları',
+            'kategori': 'Güvenlik',
+            'durum': 'Aktif',
+            'kurulum_sayisi': 890,
+            'hedef_sayisi': 1300,
+            'tamamlanma_yuzdesi': 68.5,
+            'icon': '🏃',
+            'renk': 'indigo'
+        }
+    ]
+    
+    # İstatistikler
+    toplam_cihaz = sum(cihaz['kurulum_sayisi'] for cihaz in cihaz_turleri_data)
+    toplam_hedef = sum(cihaz['hedef_sayisi'] for cihaz in cihaz_turleri_data)
+    genel_tamamlanma = round((toplam_cihaz / toplam_hedef * 100), 1) if toplam_hedef > 0 else 0
+    
+    # En popüler cihaz
+    en_populer = max(cihaz_turleri_data, key=lambda x: x['tamamlanma_yuzdesi'])
+    
+    context = {
+        'cihaz_turleri': cihaz_turleri_data,
+        'toplam_cihaz': toplam_cihaz,
+        'toplam_hedef': toplam_hedef,
+        'genel_tamamlanma': genel_tamamlanma,
+        'en_populer': en_populer,
+    }
+    
+    return render(request, 'veri_yonetimi/cihaz_turleri.html', context)
