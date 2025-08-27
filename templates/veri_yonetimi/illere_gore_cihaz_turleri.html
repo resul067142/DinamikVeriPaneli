@@ -151,23 +151,15 @@
                         
                         <!-- Genel Durum -->
                         <td class="px-6 py-4 whitespace-nowrap text-center">
-                            {% with genel_tamamlanma=il_data.cihaz_turleri|length|add:"0" %}
-                            {% with ortalama=il_data.cihaz_turleri|length|add:"0" %}
-                            {% with toplam_tamamlanma=0 %}
-                            {% for cihaz_data in il_data.cihaz_turleri %}
-                                {% with toplam_tamamlanma=toplam_tamamlanma|add:cihaz_data.tamamlanma %}
-                                {% endwith %}
-                            {% endfor %}
-                            {% with ortalama=toplam_tamamlanma|div:il_data.cihaz_turleri|length %}
                             <div class="text-center">
-                                <div class="text-lg font-bold text-gray-900">{{ ortalama|floatformat:1 }}%</div>
+                                <div class="text-lg font-bold text-gray-900">{{ il_data.genel_ortalama }}%</div>
                                 <div class="text-xs text-gray-500">Ortalama</div>
                                 <div class="mt-2">
-                                    {% if ortalama >= 80 %}
+                                    {% if il_data.genel_ortalama >= 80 %}
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                             🟢 Mükemmel
                                         </span>
-                                    {% elif ortalama >= 60 %}
+                                    {% elif il_data.genel_ortalama >= 60 %}
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                             🟡 İyi
                                         </span>
@@ -178,10 +170,6 @@
                                     {% endif %}
                                 </div>
                             </div>
-                            {% endwith %}
-                            {% endwith %}
-                            {% endwith %}
-                            {% endwith %}
                         </td>
                     </tr>
                     {% endfor %}

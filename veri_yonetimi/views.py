@@ -1045,7 +1045,8 @@ def illere_gore_cihaz_turleri(request):
             'il': il,
             'plaka': il.plaka if hasattr(il, 'plaka') else 'N/A',
             'il_adi': il.il_adi,
-            'cihaz_turleri': []
+            'cihaz_turleri': [],
+            'genel_ortalama': 0
         }
         
         for cihaz_tur in cihaz_turleri:
@@ -1064,6 +1065,11 @@ def illere_gore_cihaz_turleri(request):
                 'tamamlanma': tamamlanma,
                 'durum_renk': 'green' if tamamlanma >= 80 else 'yellow' if tamamlanma >= 60 else 'red'
             })
+        
+        # İl için genel ortalama hesapla
+        if il_cihaz_data['cihaz_turleri']:
+            toplam_tamamlanma = sum(ct['tamamlanma'] for ct in il_cihaz_data['cihaz_turleri'])
+            il_cihaz_data['genel_ortalama'] = round(toplam_tamamlanma / len(il_cihaz_data['cihaz_turleri']), 1)
         
         il_cihaz_verileri.append(il_cihaz_data)
     
