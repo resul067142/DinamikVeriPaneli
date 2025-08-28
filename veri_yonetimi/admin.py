@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from .models import AnaVeri, SutunAyarlari, Sütun, VeriDeger, UserProfile
+from .models import AnaVeri, SutunAyarlari, Sütun, VeriDeger, UserProfile, AppSettings
 
 @admin.register(Sütun)
 class SütunAdmin(admin.ModelAdmin):
@@ -100,6 +100,31 @@ class CustomUserAdmin(UserAdmin):
             return obj.profile.tc_kimlik_display
         return "Belirtilmemiş"
     tc_kimlik_display.short_description = 'TC Kimlik'
+
+@admin.register(AppSettings)
+class AppSettingsAdmin(admin.ModelAdmin):
+    list_display = ['app_name', 'app_description', 'created_at', 'updated_at']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Uygulama Bilgileri', {
+            'fields': ('app_name', 'app_description', 'app_logo')
+        }),
+        ('Tarih Bilgileri', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def has_add_permission(self, request):
+        # Sadece bir tane kayıt olmasına izin ver
+        if self.model.objects.count() >= 1:
+            return False
+        return super().has_add_permission(request)
+    
+    def has_delete_permission(self, request, obj=None):
+        # Silmeye izin verme
+        return False
 
 # User admin'ini yeniden kaydet
 admin.site.unregister(User)

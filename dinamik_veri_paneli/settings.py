@@ -77,6 +77,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'veri_yonetimi.context_processors.app_settings',
+                'veri_yonetimi.context_processors.statistics_data',
             ],
         },
     },

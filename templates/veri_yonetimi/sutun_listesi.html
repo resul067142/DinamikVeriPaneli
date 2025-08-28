@@ -240,35 +240,26 @@ function updateAppSettings() {
         reader.onload = function(e) {
             logoData = e.target.result;
             
-            // LocalStorage'a kaydet
+            // Sidebar'ı güncelle (geçici - sayfa yenileme sonrası güncel değerler gelecek)
             const appSettings = {
                 app_name: appName,
                 app_description: appDesc,
-                app_logo: logoData,
-                updatedAt: new Date().toISOString()
+                app_logo: logoData
             };
-            
-            localStorage.setItem('appSettings', JSON.stringify(appSettings));
-            
-            // Sidebar'ı güncelle
             updateSidebarSettings(appSettings);
             
             // Form oluştur ve POST isteği gönder
-            submitAppSettings(appName, appDesc, logoData);
+            submitAppSettings(appName, appDesc, file);
         };
         reader.readAsDataURL(file);
     } else {
         // Logo yoksa sadece diğer bilgileri kaydet
+        // Sidebar'ı güncelle (geçici - sayfa yenileme sonrası güncel değerler gelecek)
         const appSettings = {
             app_name: appName,
             app_description: appDesc,
-            app_logo: null,
-            updatedAt: new Date().toISOString()
+            app_logo: null
         };
-        
-        localStorage.setItem('appSettings', JSON.stringify(appSettings));
-        
-        // Sidebar'ı güncelle
         updateSidebarSettings(appSettings);
         
         // Form oluştur ve POST isteği gönder
@@ -276,46 +267,47 @@ function updateAppSettings() {
     }
 }
 
-function submitAppSettings(appName, appDesc, logoData) {
-    // Form oluştur ve POST isteği gönder
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '{% url "veri_yonetimi:update_app_settings" %}';
+function submitAppSettings(appName, appDesc, logoFile) {
+    // FormData kullanarak file upload'ı destekle
+    const formData = new FormData();
     
     // CSRF token ekle
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    const csrfInput = document.createElement('input');
-    csrfInput.type = 'hidden';
-    csrfInput.name = 'csrfmiddlewaretoken';
-    csrfInput.value = csrfToken;
-    form.appendChild(csrfInput);
+    formData.append('csrfmiddlewaretoken', csrfToken);
     
-    // App name input ekle
-    const appNameInput = document.createElement('input');
-    appNameInput.type = 'hidden';
-    appNameInput.name = 'app_name';
-    appNameInput.value = appName;
-    form.appendChild(appNameInput);
+    // App settings ekle
+    formData.append('app_name', appName);
+    formData.append('app_description', appDesc);
     
-    // App description input ekle
-    const appDescInput = document.createElement('input');
-    appDescInput.type = 'hidden';
-    appDescInput.name = 'app_description';
-    appDescInput.value = appDesc;
-    form.appendChild(appDescInput);
-    
-    // Logo data input ekle (eğer varsa)
-    if (logoData) {
-        const logoInput = document.createElement('input');
-        logoInput.type = 'hidden';
-        logoInput.name = 'app_logo';
-        logoInput.value = logoData;
-        form.appendChild(logoInput);
+    // Logo file ekle (eğer varsa)
+    if (logoFile) {
+        formData.append('app_logo', logoFile);
     }
     
-    // Form'u sayfaya ekle ve gönder
-    document.body.appendChild(form);
-    form.submit();
+    // Fetch ile POST isteği gönder
+    fetch('{% url "veri_yonetimi:update_app_settings" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': csrfToken
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            // Sayfa yenileme yerine başarı mesajı göster
+            showNotification('Uygulama ayarları başarıyla güncellendi!', 'success');
+            // Sayfa yeniden yükleme
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            showNotification('Ayarlar güncellenirken hata oluştu!', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Ayarlar güncellenirken hata oluştu!', 'error');
+    });
 }
 
 function updateSidebarSettings(appSettings) {
@@ -361,8 +353,7 @@ function resetAppSettings() {
         logoImage.src = 'https://via.placeholder.com/40x40/667eea/ffffff?text=📱';
         logoImage.alt = 'App Logo';
         
-        // LocalStorage'dan kaldır
-        localStorage.removeItem('appSettings');
+        // Artık localStorage kullanmıyoruz - veritabanından geliyor
         
         // Sidebar'ı varsayılan değerlere sıfırla
         updateSidebarSettings({
@@ -389,31 +380,25 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// Sayfa yüklendiğinde kaydedilmiş ayarları yükle
+// Sayfa yüklendiğinde güncel ayarları yükle
 document.addEventListener('DOMContentLoaded', function() {
-    const savedSettings = localStorage.getItem('appSettings');
-    if (savedSettings) {
-        try {
-            const appSettings = JSON.parse(savedSettings);
-            
-            // Form alanlarını doldur
-            if (appSettings.app_name) {
-                document.getElementById('appNameInput').value = appSettings.app_name;
-            }
-            if (appSettings.app_description) {
-                document.getElementById('appDescInput').value = appSettings.app_description;
-            }
-            if (appSettings.app_logo) {
-                const logoImage = document.getElementById('logoImage');
-                logoImage.src = appSettings.app_logo;
-                logoImage.alt = 'App Logo';
-            }
-            
-            // Sidebar'ı güncelle
-            updateSidebarSettings(appSettings);
-            
-        } catch (e) {
-            console.error('Kaydedilmiş ayarlar yüklenemedi:', e);
+    // Context processor'dan gelen güncel değerleri kullan
+    const appName = '{{ app_name|escapejs }}';
+    const appDesc = '{{ app_description|escapejs }}';
+    const appLogo = '{{ app_logo|escapejs }}';
+    
+    // Form alanlarını güncel değerlerle doldur
+    if (appName && appName !== 'None' && appName !== '') {
+        document.getElementById('appNameInput').value = appName;
+    }
+    if (appDesc && appDesc !== 'None' && appDesc !== '') {
+        document.getElementById('appDescInput').value = appDesc;
+    }
+    if (appLogo && appLogo !== 'None' && appLogo !== '' && appLogo !== 'null') {
+        const logoImage = document.getElementById('logoImage');
+        if (logoImage) {
+            logoImage.src = appLogo;
+            logoImage.alt = 'App Logo';
         }
     }
 });

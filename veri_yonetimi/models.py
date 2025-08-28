@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Q
+from django.core.cache import cache
 
 class UserProfile(models.Model):
     """
@@ -272,3 +273,85 @@ class SutunAyarlari(models.Model):
     
     def __str__(self):
         return "Eski Sütun Ayarları"
+
+class AppSettings(models.Model):
+    """
+    Uygulama ayarları - Logo, isim, açıklama gibi global ayarları saklar
+    """
+    app_name = models.CharField(max_length=100, default="DVP", verbose_name="Uygulama Adı")
+    app_description = models.CharField(max_length=200, default="Dinamik Veri Paneli", verbose_name="Uygulama Açıklaması")
+    app_logo = models.FileField(upload_to='logos/', blank=True, null=True, verbose_name="Uygulama Logosu")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Oluşturma Tarihi")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Güncellenme Tarihi")
+    
+    class Meta:
+        verbose_name = "Uygulama Ayarları"
+        verbose_name_plural = "Uygulama Ayarları"
+    
+    def __str__(self):
+        return f"{self.app_name} - {self.app_description}"
+    
+    @classmethod
+    def get_settings(cls):
+        """
+        Uygulama ayarlarını getir. Cache kullanarak performansı artır.
+        """
+        cache_key = 'app_settings'
+        settings = cache.get(cache_key)
+        
+        if settings is None:
+            try:
+                settings_obj = cls.objects.first()
+                if not settings_obj:
+                    # Varsayılan ayarları oluştur
+                    settings_obj = cls.objects.create()
+                
+                settings = {
+                    'app_name': settings_obj.app_name,
+                    'app_description': settings_obj.app_description,
+                    'app_logo': settings_obj.app_logo.url if settings_obj.app_logo else None,
+                }
+                
+                # Cache'e 1 saat boyunca sakla
+                cache.set(cache_key, settings, 3600)
+            except Exception:
+                # Hata durumunda varsayılan değerleri döndür
+                settings = {
+                    'app_name': 'DVP',
+                    'app_description': 'Dinamik Veri Paneli',
+                    'app_logo': None,
+                }
+        
+        return settings
+    
+    @classmethod
+    def update_settings(cls, app_name=None, app_description=None, app_logo=None):
+        """
+        Uygulama ayarlarını güncelle
+        """
+        settings_obj, created = cls.objects.get_or_create(defaults={
+            'app_name': app_name or 'DVP',
+            'app_description': app_description or 'Dinamik Veri Paneli'
+        })
+        
+        if not created:
+            if app_name is not None:
+                settings_obj.app_name = app_name
+            if app_description is not None:
+                settings_obj.app_description = app_description
+            if app_logo is not None:
+                settings_obj.app_logo = app_logo
+                
+            settings_obj.save()
+        
+        # Cache'i temizle
+        cache.delete('app_settings')
+        
+        return settings_obj
+    
+    def save(self, *args, **kwargs):
+        """
+        Model kaydedilirken cache'i temizle
+        """
+        super().save(*args, **kwargs)
+        cache.delete('app_settings')

@@ -16,10 +16,7 @@ def ana_sayfa(request):
     Ana sayfa - Dashboard
     """
     # Session'a app ayarlarını set et
-    if 'app_name' not in request.session:
-        request.session['app_name'] = 'DVP'
-    if 'app_description' not in request.session:
-        request.session['app_description'] = 'Dinamik Veri Paneli'
+
     
     # Aktif sütunları al
     aktif_sutunlar = Sütun.objects.filter(aktif=True).order_by('sıra')
@@ -150,9 +147,8 @@ def ana_sayfa(request):
         'ege_ortalamasi': ege_ortalamasi,
         'akdeniz_ortalamasi': akdeniz_ortalamasi,
         'ic_anadolu_ortalamasi': ic_anadolu_ortalamasi,
-        'app_name': request.session.get('app_name', 'DVP'),
-        'app_description': request.session.get('app_description', 'Dinamik Veri Paneli'),
-        'app_logo': request.session.get('app_logo', None),
+
+
     }
     return render(request, 'veri_yonetimi/ana_sayfa.html', context)
 
@@ -162,10 +158,7 @@ def veri_listesi(request):
     Ana veri tablosunu listele
     """
     # Session'a app ayarlarını set et
-    if 'app_name' not in request.session:
-        request.session['app_name'] = 'DVP'
-    if 'app_description' not in request.session:
-        request.session['app_description'] = 'Dinamik Veri Paneli'
+
     
     # Filtreleme parametreleri
     search_query = request.GET.get('search', '')
@@ -368,9 +361,8 @@ def veri_listesi(request):
         'sutun_count': sutun_count,
         'toplam_veri_count': toplam_veri_count,
         'bugun_eklenen': bugun_eklenen,
-        'app_name': request.session.get('app_name', 'DVP'),
-        'app_description': request.session.get('app_description', 'Dinamik Veri Paneli'),
-        'app_logo': request.session.get('app_logo', None),
+
+
     }
     return render(request, 'veri_yonetimi/veri_listesi.html', context)
 
@@ -382,10 +374,7 @@ def veri_ekle(request):
     from django.contrib import messages
     
     # Session'a app ayarlarını set et
-    if 'app_name' not in request.session:
-        request.session['app_name'] = 'DVP'
-    if 'app_description' not in request.session:
-        request.session['app_description'] = 'Dinamik Veri Paneli'
+
     
     # Login kontrolü
     if not request.user.is_authenticated:
@@ -450,9 +439,6 @@ def veri_ekle(request):
         'aktif_sutunlar': aktif_sutunlar,
         'is_edit': False,
         'user_count': user_count,
-        'app_name': request.session.get('app_name', 'DVP'),
-        'app_description': request.session.get('app_description', 'Dinamik Veri Paneli'),
-        'app_logo': request.session.get('app_logo', None),
     }
     return render(request, 'veri_yonetimi/veri_formu.html', context)
 
@@ -464,10 +450,7 @@ def veri_guncelle(request, pk):
     from django.contrib import messages
     
     # Session'a app ayarlarını set et
-    if 'app_name' not in request.session:
-        request.session['app_name'] = 'DVP'
-    if 'app_description' not in request.session:
-        request.session['app_description'] = 'Dinamik Veri Paneli'
+
     
     # Login kontrolü
     if not request.user.is_authenticated:
@@ -561,9 +544,6 @@ def veri_guncelle(request, pk):
         'field_values_json': field_values_json,
         'is_edit': True,
         'user_count': user_count,
-        'app_name': request.session.get('app_name', 'DVP'),
-        'app_description': request.session.get('app_description', 'Dinamik Veri Paneli'),
-        'app_logo': request.session.get('app_logo', None),
     }
     return render(request, 'veri_yonetimi/veri_formu.html', context)
 
@@ -573,10 +553,7 @@ def veri_sil(request, pk):
     Veri silme onay sayfası
     """
     # Session'a app ayarlarını set et
-    if 'app_name' not in request.session:
-        request.session['app_name'] = 'DVP'
-    if 'app_description' not in request.session:
-        request.session['app_description'] = 'Dinamik Veri Paneli'
+
     
     # Login kontrolü
     if not request.user.is_authenticated:
@@ -632,9 +609,6 @@ def veri_sil(request, pk):
     context = {
         'ana_veri': ana_veri,
         'aktif_sutunlar': aktif_sutunlar,
-        'app_name': request.session.get('app_name', 'DVP'),
-        'app_description': request.session.get('app_description', 'Dinamik Veri Paneli'),
-        'app_logo': request.session.get('app_logo', None),
     }
     return render(request, 'veri_yonetimi/veri_sil.html', context)
 
@@ -657,20 +631,15 @@ def sutun_listesi(request):
     Sütun listesi
     """
     # Session'a app ayarlarını set et
-    if 'app_name' not in request.session:
-        request.session['app_name'] = 'DVP'
-    if 'app_description' not in request.session:
-        request.session['app_description'] = 'Dinamik Veri Paneli'
-    if 'app_logo' not in request.session:
-        request.session['app_logo'] = None
+
+
     
     sutunlar = Sütun.objects.all().order_by('sıra')
     
-    # Site başlığını session'dan al
-    site_title = request.session.get('site_title', 'Dinamik Veri Paneli')
-    app_name = request.session.get('app_name', 'Dinamik Veri Paneli')
-    app_description = request.session.get('app_description', 'Bu uygulama, veri yönetimi ve raporlama için tasarlanmıştır.')
-    app_logo = request.session.get('app_logo', None)
+    # Uygulama ayarlarını veritabanından al
+    from .models import AppSettings
+    app_settings = AppSettings.get_settings()
+    site_title = app_settings['app_name']
     
     # Sağ sidebar için ek veriler
     user_count = User.objects.count()
@@ -679,9 +648,6 @@ def sutun_listesi(request):
     context = {
         'sutunlar': sutunlar,
         'site_title': site_title,
-        'app_name': app_name,
-        'app_description': app_description,
-        'app_logo': app_logo,
         'user_count': user_count,
         'aktif_sutunlar': aktif_sutunlar,
     }
@@ -692,11 +658,6 @@ def sutun_ekle(request):
     """
     Yeni sütun ekle
     """
-    # Session'a app ayarlarını set et
-    if 'app_name' not in request.session:
-        request.session['app_name'] = 'DVP'
-    if 'app_description' not in request.session:
-        request.session['app_description'] = 'Dinamik Veri Paneli'
     
     if request.method == 'POST':
         form = SütunForm(request.POST)
@@ -735,9 +696,6 @@ def sutun_ekle(request):
         'is_edit': False,
         'user_count': user_count,
         'aktif_sutunlar': aktif_sutunlar,
-        'app_name': request.session.get('app_name', 'DVP'),
-        'app_description': request.session.get('app_description', 'Dinamik Veri Paneli'),
-        'app_logo': request.session.get('app_logo', None),
     }
     return render(request, 'veri_yonetimi/sutun_formu.html', context)
 
@@ -747,10 +705,7 @@ def sutun_guncelle(request, pk):
     Sütun güncelle
     """
     # Session'a app ayarlarını set et
-    if 'app_name' not in request.session:
-        request.session['app_name'] = 'DVP'
-    if 'app_description' not in request.session:
-        request.session['app_description'] = 'Dinamik Veri Paneli'
+
     
     sutun = get_object_or_404(Sütun, pk=pk)
     
@@ -805,9 +760,6 @@ def sutun_guncelle(request, pk):
         'is_edit': True,
         'user_count': user_count,
         'aktif_sutunlar': aktif_sutunlar,
-        'app_name': request.session.get('app_name', 'DVP'),
-        'app_description': request.session.get('app_description', 'Dinamik Veri Paneli'),
-        'app_logo': request.session.get('app_logo', None),
     }
     return render(request, 'veri_yonetimi/sutun_formu.html', context)
 
@@ -817,10 +769,7 @@ def sutun_sil(request, pk):
     Sütun sil
     """
     # Session'a app ayarlarını set et
-    if 'app_name' not in request.session:
-        request.session['app_name'] = 'DVP'
-    if 'app_description' not in request.session:
-        request.session['app_description'] = 'Dinamik Veri Paneli'
+
     
     try:
         sutun = get_object_or_404(Sütun, pk=pk)
@@ -875,9 +824,6 @@ def sutun_sil(request, pk):
             'sutun': sutun,
             'user_count': user_count,
             'aktif_sutunlar': aktif_sutunlar,
-            'app_name': request.session.get('app_name', 'DVP'),
-            'app_description': request.session.get('app_description', 'Dinamik Veri Paneli'),
-            'app_logo': request.session.get('app_logo', None),
         }
         return render(request, 'veri_yonetimi/sutun_sil.html', context)
         
@@ -912,15 +858,21 @@ def update_app_settings(request):
     if request.method == 'POST':
         app_name = request.POST.get('app_name', '').strip()
         app_description = request.POST.get('app_description', '').strip()
-        app_logo = request.POST.get('app_logo', '').strip()
+        app_logo_file = request.FILES.get('app_logo')
         
         if app_name:
-            # Uygulama ayarlarını session'a kaydet
-            request.session['app_name'] = app_name
-            request.session['app_description'] = app_description
-            if app_logo:
-                request.session['app_logo'] = app_logo
-            messages.success(request, f'Uygulama ayarları başarıyla güncellendi: {app_name}')
+            # Uygulama ayarlarını veritabanına kaydet
+            from .models import AppSettings
+            
+            try:
+                AppSettings.update_settings(
+                    app_name=app_name,
+                    app_description=app_description,
+                    app_logo=app_logo_file
+                )
+                messages.success(request, f'Uygulama ayarları başarıyla güncellendi: {app_name}')
+            except Exception as e:
+                messages.error(request, f'Ayarlar kaydedilirken hata oluştu: {str(e)}')
         else:
             messages.error(request, 'Uygulama adı boş olamaz!')
     
@@ -932,10 +884,7 @@ def kullanici_listesi(request):
     Kullanıcı listesini göster (sadece admin)
     """
     # Session'a app ayarlarını set et
-    if 'app_name' not in request.session:
-        request.session['app_name'] = 'DVP'
-    if 'app_description' not in request.session:
-        request.session['app_description'] = 'Dinamik Veri Paneli'
+
     
     # Sadece süper kullanıcılar kullanıcı listesini görebilir
     if not request.user.is_superuser:
@@ -971,9 +920,6 @@ def kullanici_listesi(request):
         'admin_count': admin_count,
         'active_count': active_count,
         'il_sorumlusu_count': il_sorumlusu_count,
-        'app_name': request.session.get('app_name', 'DVP'),
-        'app_description': request.session.get('app_description', 'Dinamik Veri Paneli'),
-        'app_logo': request.session.get('app_logo', None),
     }
     return render(request, 'veri_yonetimi/kullanici_listesi.html', context)
 
@@ -983,10 +929,7 @@ def kullanici_ekle(request):
     Yeni kullanıcı ekle
     """
     # Session'a app ayarlarını set et
-    if 'app_name' not in request.session:
-        request.session['app_name'] = 'DVP'
-    if 'app_description' not in request.session:
-        request.session['app_description'] = 'Dinamik Veri Paneli'
+
     
     # Sadece süper kullanıcılar kullanıcı ekleyebilir
     if not request.user.is_superuser:
@@ -1092,9 +1035,6 @@ def kullanici_ekle(request):
         'user_count': user_count,
         'aktif_sutunlar': aktif_sutunlar,
         'turkiye_illeri': sorted(turkiye_illeri),
-        'app_name': request.session.get('app_name', 'DVP'),
-        'app_description': request.session.get('app_description', 'Dinamik Veri Paneli'),
-        'app_logo': request.session.get('app_logo', None),
     }
     return render(request, 'veri_yonetimi/kullanici_formu.html', context)
 
@@ -1104,10 +1044,7 @@ def kullanici_guncelle(request, pk):
     Kullanıcı güncelle
     """
     # Session'a app ayarlarını set et
-    if 'app_name' not in request.session:
-        request.session['app_name'] = 'DVP'
-    if 'app_description' not in request.session:
-        request.session['app_description'] = 'Dinamik Veri Paneli'
+
     
     # Sadece süper kullanıcılar kullanıcı güncelleyebilir
     if not request.user.is_superuser:
@@ -1198,9 +1135,6 @@ def kullanici_guncelle(request, pk):
         'kullanici': kullanici,
         'user_count': user_count,
         'aktif_sutunlar': aktif_sutunlar,
-        'app_name': request.session.get('app_name', 'DVP'),
-        'app_description': request.session.get('app_description', 'Dinamik Veri Paneli'),
-        'app_logo': request.session.get('app_logo', None),
     }
     return render(request, 'veri_yonetimi/kullanici_formu.html', context)
 
@@ -1282,10 +1216,7 @@ def cihaz_turleri_duzenle(request, pk):
     Cihaz türü düzenle
     """
     # Session'a app ayarlarını set et
-    if 'app_name' not in request.session:
-        request.session['app_name'] = 'DVP'
-    if 'app_description' not in request.session:
-        request.session['app_description'] = 'Dinamik Veri Paneli'
+
     
     # Cihaz türleri verileri
     cihaz_turleri_data = [
@@ -1396,8 +1327,7 @@ def cihaz_turleri_duzenle(request, pk):
         'kategoriler': ['Güvenlik', 'Takip', 'Navigasyon', 'Maliyet', 'Teknik'],
         'durumlar': ['Aktif', 'Pasif'],
         'icons': ['📹', '🚗', '📍', '⛽', '⚙️', '🏃', '🔧', '📡', '💻', '📱'],
-        'app_name': request.session.get('app_name', 'DVP'),
-        'app_description': request.session.get('app_description', 'Dinamik Veri Paneli'),
+
     }
     
     return render(request, 'veri_yonetimi/cihaz_turleri_duzenle.html', context)
@@ -1408,10 +1338,7 @@ def cihaz_turleri_sil(request, pk):
     Cihaz türü sil
     """
     # Session'a app ayarlarını set et
-    if 'app_name' not in request.session:
-        request.session['app_name'] = 'DVP'
-    if 'app_description' not in request.session:
-        request.session['app_description'] = 'Dinamik Veri Paneli'
+
     
     # Cihaz türleri verileri
     cihaz_turleri_data = [
@@ -1507,8 +1434,7 @@ def cihaz_turleri_sil(request, pk):
     
     context = {
         'cihaz_turu': cihaz_turu,
-        'app_name': request.session.get('app_name', 'DVP'),
-        'app_description': request.session.get('app_description', 'Dinamik Veri Paneli'),
+
     }
     
     return render(request, 'veri_yonetimi/cihaz_turleri_sil.html', context)
@@ -1661,10 +1587,7 @@ def kullanici_loglari(request):
     from django.utils import timezone
     
     # Session'a app ayarlarını set et
-    if 'app_name' not in request.session:
-        request.session['app_name'] = 'DVP'
-    if 'app_description' not in request.session:
-        request.session['app_description'] = 'Dinamik Veri Paneli'
+
     
     # Sadece süper kullanıcılar logları görebilir
     if not request.user.is_superuser:
@@ -1757,9 +1680,8 @@ def kullanici_loglari(request):
         'aktif_kullanici_sayisi': aktif_kullanici_sayisi,
         'en_aktif_kullanicilar': en_aktif_kullanicilar,
         'islem_tipi_dagilimi': islem_tipi_dagilimi,
-        'app_name': request.session.get('app_name', 'DVP'),
-        'app_description': request.session.get('app_description', 'Dinamik Veri Paneli'),
-        'app_logo': request.session.get('app_logo', None),
+
+
     }
     return render(request, 'veri_yonetimi/kullanici_loglari.html', context)
 
@@ -1905,10 +1827,7 @@ def kullanici_listesi(request):
         return redirect('veri_yonetimi:ana_sayfa')
     
     # Session'a app ayarlarını set et
-    if 'app_name' not in request.session:
-        request.session['app_name'] = 'DVP'
-    if 'app_description' not in request.session:
-        request.session['app_description'] = 'Dinamik Veri Paneli'
+
     
     # Kullanıcıları al
     kullanicilar = User.objects.all().order_by('-date_joined')
@@ -1940,9 +1859,6 @@ def kullanici_listesi(request):
         'staff_count': staff_count, 
         'user_count': user_count,
         'aktif_count': aktif_count,
-        'app_name': request.session.get('app_name', 'DVP'),
-        'app_description': request.session.get('app_description', 'Dinamik Veri Paneli'),
-        'app_logo': request.session.get('app_logo', None),
     }
     return render(request, 'veri_yonetimi/kullanici_listesi.html', context)
 
@@ -2028,9 +1944,6 @@ def kullanici_ekle(request):
     
     context = {
         'turkiye_illeri': turkiye_illeri,
-        'app_name': request.session.get('app_name', 'DVP'),
-        'app_description': request.session.get('app_description', 'Dinamik Veri Paneli'),
-        'app_logo': request.session.get('app_logo', None),
     }
     return render(request, 'veri_yonetimi/kullanici_formu.html', context)
 
@@ -2117,9 +2030,6 @@ def kullanici_guncelle(request, pk):
         'profile': profile,
         'turkiye_illeri': turkiye_illeri,
         'is_edit': True,
-        'app_name': request.session.get('app_name', 'DVP'),
-        'app_description': request.session.get('app_description', 'Dinamik Veri Paneli'),
-        'app_logo': request.session.get('app_logo', None),
     }
     return render(request, 'veri_yonetimi/kullanici_formu.html', context)
 
