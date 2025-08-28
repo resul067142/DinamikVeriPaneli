@@ -1,451 +1,838 @@
 {% extends 'base.html' %}
 {% load custom_filters %}
 
-{% block title %}Kullanıcı Yönetimi - DVP{% endblock %}
-
-{% block content %}
-<div class="space-y-3">
-    {% csrf_token %}
-
-
-
-
-    <!-- Quick Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-        <div class="card p-3 text-center relative">
-            <div class="text-2xl font-bold text-blue-600">{{ kullanicilar.count|default:"0" }}</div>
-            <div class="text-xs text-gray-600 mb-2">Toplam Kullanıcı</div>
-            {% if user.is_superuser %}
-            <a href="{% url 'veri_yonetimi:kullanici_ekle' %}" class="btn btn-primary text-xs w-full">
-                ➕ Yeni Kullanıcı
-            </a>
-            {% endif %}
-        </div>
-        <div class="card p-3 text-center">
-            <div class="text-2xl font-bold text-purple-600">{{ admin_count|default:"0" }}</div>
-            <div class="text-xs text-gray-600">Admin Kullanıcı</div>
-        </div>
-        <div class="card p-3 text-center">
-            <div class="text-2xl font-bold text-green-600">{{ active_count|default:"0" }}</div>
-            <div class="text-xs text-gray-600">Aktif Kullanıcı</div>
-        </div>
-        <div class="card p-3 text-center">
-            <div class="text-2xl font-bold text-orange-600">{{ il_sorumlusu_count|default:"0" }}</div>
-            <div class="text-xs text-gray-600">İl Sorumlusu</div>
-        </div>
-    </div>
-
-    <!-- Users List -->
-    {% if kullanicilar %}
-        <div class="card p-4">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-800">📋 Mevcut Kullanıcılar</h3>
-                <div class="text-sm text-gray-500">
-                    Toplam {{ kullanicilar.count }} kullanıcı
-                </div>
-            </div>
-
-            <!-- Mobile Card View -->
-            <div class="lg:hidden space-y-3">
-                {% for kullanici in kullanicilar %}
-                <div class="bg-white border border-gray-200 rounded-lg p-4 space-y-3 hover:border-blue-300 transition-colors">
-                    <div class="flex justify-between items-start">
-                        <div class="flex items-center gap-3">
-                            <div class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">
-                                {% if kullanici.is_superuser %}👑{% else %}👤{% endif %}
-                            </div>
-                            <div>
-                                <div class="text-sm font-semibold text-gray-800">{{ kullanici.username }}</div>
-                                <div class="text-xs text-gray-500">
-                                    {{ kullanici.first_name|default:"İsim belirtilmemiş" }}
-                                    {% if kullanici.last_name %}({{ kullanici.last_name }}){% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            {% if kullanici.is_superuser %}
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                    👑 Admin
-                                </span>
-                            {% elif kullanici.is_staff %}
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    👤 İl Sorumlusu
-                                </span>
-                            {% else %}
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                    👤 Normal
-                                </span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <!-- TC Kimlik ve Diğer Bilgiler -->
-                    <div class="grid grid-cols-2 gap-3 text-xs">
-                        <div>
-                            <div class="text-gray-600 font-medium">TC Kimlik</div>
-                            <div class="text-gray-800">
-                                {% if kullanici.profile.tc_kimlik %}
-                                    {{ kullanici.profile.tc_kimlik }}
-                                {% else %}
-                                    Belirtilmemiş
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div>
-                            <div class="text-gray-600 font-medium">E-posta</div>
-                            <div class="text-gray-800">{{ kullanici.email|default:"Belirtilmemiş" }}</div>
-                        </div>
-                        <div>
-                            <div class="text-gray-600 font-medium">Kayıt Tarihi</div>
-                            <div class="text-gray-800">{{ kullanici.date_joined|date:"d.m.Y" }}</div>
-                        </div>
-                        <div>
-                            <div class="text-gray-600 font-medium">Durum</div>
-                            <div>
-                                {% if kullanici.is_active %}
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        ✅ Aktif
-                                    </span>
-                                {% else %}
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                        ❌ Pasif
-                                    </span>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {% if user.is_superuser %}
-                    <div class="flex gap-2 pt-2 border-t border-gray-100">
-                        <a href="{% url 'veri_yonetimi:kullanici_guncelle' kullanici.pk %}" 
-                           class="btn btn-secondary text-xs flex-1">
-                            ✏️ Düzenle
-                        </a>
-                        <button onclick="toggleUserStatus({{ kullanici.pk }}, '{{ kullanici.username }}', {{ kullanici.is_active|yesno:'true,false' }})" 
-                                class="btn btn-secondary text-xs flex-1 {% if kullanici.is_active %}bg-red-100 text-red-800 hover:bg-red-200{% else %}bg-green-100 text-green-800 hover:bg-green-200{% endif %}">
-                            {% if kullanici.is_active %}❌ Pasif Yap{% else %}✅ Aktif Yap{% endif %}
-                        </button>
-                        <button onclick="changeUserRole({{ kullanici.pk }}, '{{ kullanici.username }}')" 
-                                class="btn btn-secondary text-xs flex-1 bg-blue-100 text-blue-800 hover:bg-blue-200">
-                            🔄 Yetki Değiştir
-                        </button>
-                    </div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-
-            <!-- Desktop Table View -->
-            <div class="hidden lg:block overflow-x-auto">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th class="text-xs">Kullanıcı</th>
-                            <th class="text-xs">TC Kimlik</th>
-                            <th class="text-xs">E-posta</th>
-                            <th class="text-xs">Yetki</th>
-                            <th class="text-xs">Durum</th>
-                            <th class="text-xs">Kayıt Tarihi</th>
-                            {% if user.is_superuser %}
-                            <th class="text-xs">İşlemler</th>
-                            {% endif %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for kullanici in kullanicilar %}
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="text-xs">
-                                <div class="flex items-center gap-2">
-                                    <div class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">
-                                        {% if kullanici.is_superuser %}👑{% else %}👤{% endif %}
-                                    </div>
-                                    <div>
-                                        <div class="font-semibold text-gray-800">{{ kullanici.username }}</div>
-                                        <div class="text-gray-500">
-                                            {{ kullanici.first_name|default:"İsim belirtilmemiş" }}
-                                            {% if kullanici.last_name %}({{ kullanici.last_name }}){% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="text-xs text-gray-800">
-                                {% if kullanici.profile.tc_kimlik %}
-                                    {{ kullanici.profile.tc_kimlik }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                            <td class="text-xs text-gray-800">{{ kullanici.email|default:"-" }}</td>
-                            <td class="text-xs">
-                                {% if kullanici.is_superuser %}
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                        👑 Admin
-                                    </span>
-                                {% elif kullanici.is_staff %}
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        👤 İl Sorumlusu
-                                    </span>
-                                {% else %}
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                        👤 Normal
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td class="text-xs">
-                                {% if kullanici.is_active %}
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        ✅ Aktif
-                                    </span>
-                                {% else %}
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                        ❌ Pasif
-                                    </span>
-                                {% endif %}
-                            </td>
-                            <td class="text-xs text-gray-500">{{ kullanici.date_joined|date:"d.m.Y H:i" }}</td>
-                            {% if user.is_superuser %}
-                            <td class="text-xs">
-                                <div class="flex gap-2">
-                                    <a href="{% url 'veri_yonetimi:kullanici_guncelle' kullanici.pk %}" 
-                                       class="btn btn-secondary text-xs">
-                                        ✏️ Düzenle
-                                    </a>
-                                    <button onclick="toggleUserStatus({{ kullanici.pk }}, '{{ kullanici.username }}', {{ kullanici.is_active|yesno:'true,false' }})" 
-                                            class="btn btn-secondary text-xs {% if kullanici.is_active %}bg-red-100 text-red-800 hover:bg-red-200{% else %}bg-green-100 text-green-800 hover:bg-green-200{% endif %}">
-                                        {% if kullanici.is_active %}❌{% else %}✅{% endif %}
-                                    </button>
-                                    <button onclick="changeUserRole({{ kullanici.pk }}, '{{ kullanici.username }}')" 
-                                            class="btn btn-secondary text-xs bg-blue-100 text-blue-800 hover:bg-blue-200">
-                                        🔄
-                                    </button>
-                                </div>
-                            </td>
-                            {% endif %}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            
-            <!-- Results Summary -->
-            <div class="mt-4 p-3 bg-green-50 rounded text-center">
-                <p class="text-green-800 font-medium text-xs">🎉 Toplam {{ kullanicilar.count }} kullanıcı bulundu.</p>
-            </div>
-        </div>
-    {% else %}
-        <!-- Empty State -->
-        <div class="card p-8 text-center">
-            <div class="text-4xl mb-4">👥</div>
-            <h3 class="text-lg font-semibold text-gray-800 mb-2">Henüz kullanıcı bulunmuyor</h3>
-            <p class="text-gray-600 mb-4 text-sm">
-                İlk kullanıcınızı eklemek için aşağıdaki butona tıklayın.
-            </p>
-            {% if user.is_superuser %}
-            <div class="flex flex-wrap justify-center gap-3">
-                <a href="{% url 'veri_yonetimi:kullanici_ekle' %}" class="btn btn-primary">
-                    ➕ İlk Kullanıcıyı Ekle
-                </a>
-                <a href="{% url 'veri_yonetimi:ana_sayfa' %}" class="btn btn-secondary">
-                    🏠 Ana Sayfaya Dön
-                </a>
-            </div>
-            {% endif %}
-        </div>
-    {% endif %}
-
-    <!-- Help Section -->
-    <div class="card p-4 bg-gray-50">
-        <h3 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-            💡 Kullanıcı Yönetimi Yardımı
-        </h3>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-600">
-            <div>
-                <h4 class="font-medium text-gray-700 mb-2">👑 Yetki Seviyeleri</h4>
-                <ul class="space-y-1">
-                    <li>• <strong>Admin</strong>: Tam yetki, tüm işlemler</li>
-                    <li>• <strong>İl Sorumlusu</strong>: Sadece kendi ilinin verileri</li>
-                    <li>• <strong>Normal</strong>: Sınırlı erişim</li>
-                </ul>
-            </div>
-            
-            <div>
-                <h4 class="font-medium text-gray-700 mb-2">🔧 İşlemler</h4>
-                <ul class="space-y-1">
-                    <li>• <strong>Düzenle</strong>: Kullanıcı bilgilerini güncelle</li>
-                    <li>• <strong>Aktif/Pasif</strong>: Kullanıcı durumunu değiştir</li>
-                    <li>• <strong>Yetki Değiştir</strong>: Rol ve yetkileri düzenle</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="mt-3 p-2 bg-blue-100 rounded text-xs text-blue-800">
-            <strong>💡 İpucu:</strong> TC kimlik numarası benzersiz olmalıdır. Her kullanıcı için farklı TC kimlik numarası kullanın.
-        </div>
-    </div>
-</div>
-
-<!-- Role Change Modal -->
-<div id="roleModal" class="fixed inset-0 bg-black/50 hidden z-50">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="card max-w-md w-full">
-            <div class="flex items-center gap-2 mb-3">
-                <span class="text-lg">🔄</span>
-                <h3 class="text-base font-semibold">Yetki Değiştir</h3>
-            </div>
-            
-            <p class="text-gray-600 mb-4 text-sm">
-                "<span id="roleUserName" class="font-semibold"></span>" kullanıcısının yetkisini değiştirin
-            </p>
-            
-            <div class="space-y-3 mb-4">
-                <label class="flex items-center gap-2">
-                    <input type="radio" name="userRole" value="admin" class="text-blue-600">
-                    <span class="text-sm">👑 Admin (Tam yetki)</span>
-                </label>
-                <label class="flex items-center gap-2">
-                    <input type="radio" name="userRole" value="il_sorumlusu" class="text-blue-600">
-                    <span class="text-sm">👤 İl Sorumlusu (Sınırlı yetki)</span>
-                </label>
-                <label class="flex items-center gap-2">
-                    <input type="radio" name="userRole" value="normal" class="text-blue-600">
-                    <span class="text-sm">👤 Normal Kullanıcı (Temel yetki)</span>
-                </label>
-            </div>
-            
-            <div class="flex gap-2">
-                <button onclick="closeRoleModal()" class="btn btn-secondary flex-1 text-sm">
-                    ❌ İptal
-                </button>
-                <button id="confirmRoleBtn" class="btn btn-primary flex-1 text-sm">
-                    🔄 Yetki Değiştir
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Success Notification -->
-<div id="successNotification" class="fixed top-4 right-4 bg-green-500 text-white px-4 py-3 rounded-lg shadow-lg transform translate-x-full transition-all duration-300 z-50">
-    <div class="flex items-center gap-2">
-        <span class="text-lg">✅</span>
-        <span class="font-medium text-sm" id="notificationMessage">İşlem başarılı!</span>
-    </div>
-</div>
-{% endblock %}
+{% block title %}Kullanıcı Yönetimi - {{ app_name|default:"DVP" }}{% endblock %}
 
 {% block extra_js %}
+<!-- Excel Export Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- PDF Export Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <script>
 let currentUserId = null;
+let currentUsername = '';
+let currentStatus = false;
 
-function showNotification(message) {
-    const notification = document.getElementById('successNotification');
-    const messageElement = document.getElementById('notificationMessage');
+// User status toggle
+function toggleUserStatus(userId, username, isActive) {
+    currentUserId = userId;
+    currentUsername = username;
+    currentStatus = isActive;
     
-    messageElement.textContent = message;
+    const status = isActive ? 'pasif' : 'aktif';
     
-    // Show notification
-    notification.classList.remove('translate-x-full');
-    notification.classList.add('translate-x-0');
+    document.getElementById('statusModalText').innerHTML = 
+        `<strong>${username}</strong> kullanıcısını <strong>${status}</strong> yapmak istediğinizden emin misiniz?`;
     
-    // Hide after 3 seconds
-    setTimeout(() => {
-        notification.classList.remove('translate-x-0');
-        notification.classList.add('translate-x-full');
-    }, 3000);
+    document.getElementById('statusModal').classList.remove('hidden');
 }
 
-function toggleUserStatus(userId, username, isActive) {
-    const action = isActive ? 'pasif yapmak' : 'aktif yapmak';
-    if (confirm(`"${username}" kullanıcısını ${action} istediğinizden emin misiniz?`)) {
-        // Show loading state
-        const btn = event.target;
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '⏳...';
-        btn.disabled = true;
+function closeStatusModal() {
+    document.getElementById('statusModal').classList.add('hidden');
+}
+
+function confirmStatusChange() {
+    if (currentUserId) {
+        const newStatus = !currentStatus;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
         
-        // Simulate API call
-        setTimeout(() => {
-            // Toggle status locally
-            btn.innerHTML = isActive ? '✅ Aktif Yap' : '❌ Pasif Yap';
-            btn.classList.toggle('bg-red-100', !isActive);
-            btn.classList.toggle('text-red-800', !isActive);
-            btn.classList.toggle('hover:bg-red-200', !isActive);
-            btn.classList.toggle('bg-green-100', isActive);
-            btn.classList.toggle('text-green-800', isActive);
-            btn.classList.toggle('hover:bg-green-200', isActive);
-            
-            btn.disabled = false;
-            
-            // Show success notification
-            showNotification(`Kullanıcı durumu başarıyla değiştirildi!`);
-            
-        }, 1000);
+        fetch(`/veri/kullanici/${currentUserId}/toggle-status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({
+                is_active: newStatus
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                showNotification('Hata: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Bir hata oluştu', 'error');
+        });
+        
+        closeStatusModal();
     }
 }
 
+// User role change
 function changeUserRole(userId, username) {
     currentUserId = userId;
-    document.getElementById('roleUserName').textContent = username;
-    document.getElementById('roleModal').classList.remove('hidden');
+    currentUsername = username;
     
-    // Set current role
-    const currentRole = getCurrentUserRole(userId);
-    document.querySelector(`input[value="${currentRole}"]`).checked = true;
+    document.getElementById('roleModalText').innerHTML = 
+        `<strong>${username}</strong> kullanıcısının yeni yetkisini seçin:`;
+    
+    document.getElementById('roleModal').classList.remove('hidden');
 }
 
 function closeRoleModal() {
     document.getElementById('roleModal').classList.add('hidden');
 }
 
-function getCurrentUserRole(userId) {
-    // This would normally come from the server
-    // For now, we'll simulate it
-    return 'normal';
+function confirmRoleChange() {
+    if (currentUserId) {
+        const newRole = document.querySelector('input[name="newRole"]:checked');
+        if (!newRole) {
+            showNotification('Lütfen bir yetki seviyesi seçin', 'warning');
+            return;
+        }
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch(`/veri/kullanici/${currentUserId}/change-role/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({
+                role: newRole.value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                showNotification('Hata: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Bir hata oluştu', 'error');
+        });
+        
+        closeRoleModal();
+    }
 }
 
-function confirmRoleChange() {
-    const selectedRole = document.querySelector('input[name="userRole"]:checked');
-    if (!selectedRole) {
-        alert('Lütfen bir yetki seviyesi seçin.');
-        return;
+// Excel Export
+function exportToExcel() {
+    try {
+        const users = [];
+        
+        // Tablo verilerini al
+        const table = document.querySelector('table');
+        if (table) {
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 6) {
+                    const user = {
+                        'Kullanıcı Adı': cells[0].textContent.trim().split('\n')[0].trim(),
+                        'TC Kimlik': cells[1].textContent.trim(),
+                        'E-posta': cells[2].textContent.trim(),
+                        'Yetki': cells[3].textContent.trim(),
+                        'Durum': cells[4].textContent.trim(),
+                        'Kayıt Tarihi': cells[5].textContent.trim()
+                    };
+                    users.push(user);
+                }
+            });
+        }
+        
+        // Mobil görünümden veri al
+        if (users.length === 0) {
+            const mobileCards = document.querySelectorAll('.lg\\:hidden .bg-white');
+            mobileCards.forEach(card => {
+                const username = card.querySelector('.text-base.font-semibold')?.textContent.trim() || '';
+                const tcKimlik = card.querySelector('.bg-gray-50:nth-child(1) .text-gray-800')?.textContent.trim() || '';
+                const email = card.querySelector('.bg-gray-50:nth-child(2) .text-gray-800')?.textContent.trim() || '';
+                const kayitTarihi = card.querySelector('.bg-gray-50:nth-child(3) .text-gray-800')?.textContent.trim() || '';
+                
+                const yetkiSpan = card.querySelector('.bg-gradient-to-r');
+                const durumSpan = card.querySelector('.bg-green-100, .bg-red-100');
+                
+                const yetki = yetkiSpan ? yetkiSpan.textContent.trim() : '';
+                const durum = durumSpan ? durumSpan.textContent.trim() : '';
+                
+                const user = {
+                    'Kullanıcı Adı': username,
+                    'TC Kimlik': tcKimlik,
+                    'E-posta': email,
+                    'Yetki': yetki,
+                    'Durum': durum,
+                    'Kayıt Tarihi': kayitTarihi
+                };
+                users.push(user);
+            });
+        }
+        
+        if (users.length === 0) {
+            alert('Dışa aktarılacak kullanıcı verisi bulunamadı!');
+            return;
+        }
+        
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(users);
+        
+        const colWidths = [
+            { wch: 20 }, { wch: 15 }, { wch: 25 }, 
+            { wch: 15 }, { wch: 12 }, { wch: 15 }
+        ];
+        ws['!cols'] = colWidths;
+        
+        XLSX.utils.book_append_sheet(wb, ws, 'Kullanıcılar');
+        
+        const fileName = `kullanicilar_${new Date().toISOString().split('T')[0]}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        
+        showNotification('✅ Excel dosyası başarıyla indirildi!', 'success');
+        
+    } catch (error) {
+        console.error('Excel export error:', error);
+        showNotification('❌ Excel export hatası: ' + error.message, 'error');
     }
+}
+
+// PDF Export
+function exportToPDF() {
+    try {
+        let content = `
+            <div style="font-family: Arial, sans-serif; padding: 20px;">
+                <h1 style="color: #1f2937; text-align: center; margin-bottom: 30px;">
+                    Kullanıcı Listesi
+                </h1>
+                <p style="text-align: center; color: #6b7280; margin-bottom: 30px;">
+                    Oluşturulma Tarihi: ${new Date().toLocaleDateString('tr-TR')}
+                </p>
+        `;
+        
+        const table = document.querySelector('table');
+        if (table) {
+            const rows = table.querySelectorAll('tbody tr');
+            content += '<table style="width: 100%; border-collapse: collapse; margin-top: 20px;">';
+            content += `
+                <thead>
+                    <tr style="background-color: #f3f4f6;">
+                        <th style="border: 1px solid #d1d5db; padding: 12px; text-align: left; font-weight: bold;">Kullanıcı Adı</th>
+                        <th style="border: 1px solid #d1d5db; padding: 12px; text-align: left; font-weight: bold;">TC Kimlik</th>
+                        <th style="border: 1px solid #d1d5db; padding: 12px; text-align: left; font-weight: bold;">E-posta</th>
+                        <th style="border: 1px solid #d1d5db; padding: 12px; text-align: left; font-weight: bold;">Yetki</th>
+                        <th style="border: 1px solid #d1d5db; padding: 12px; text-align: left; font-weight: bold;">Durum</th>
+                        <th style="border: 1px solid #d1d5db; padding: 12px; text-align: left; font-weight: bold;">Kayıt Tarihi</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 6) {
+                    content += '<tr>';
+                    content += `<td style="border: 1px solid #d1d5db; padding: 12px;">${cells[0].textContent.trim().split('\n')[0].trim()}</td>`;
+                    content += `<td style="border: 1px solid #d1d5db; padding: 12px;">${cells[1].textContent.trim()}</td>`;
+                    content += `<td style="border: 1px solid #d1d5db; padding: 12px;">${cells[2].textContent.trim()}</td>`;
+                    content += `<td style="border: 1px solid #d1d5db; padding: 12px;">${cells[3].textContent.trim()}</td>`;
+                    content += `<td style="border: 1px solid #d1d5db; padding: 12px;">${cells[4].textContent.trim()}</td>`;
+                    content += `<td style="border: 1px solid #d1d5db; padding: 12px;">${cells[5].textContent.trim()}</td>`;
+                    content += '</tr>';
+                }
+            });
+            
+            content += '</tbody></table>';
+        } else {
+            const mobileCards = document.querySelectorAll('.lg\\:hidden .bg-white');
+            content += '<table style="width: 100%; border-collapse: collapse; margin-top: 20px;">';
+            content += `
+                <thead>
+                    <tr style="background-color: #f3f4f6;">
+                        <th style="border: 1px solid #d1d5db; padding: 12px; text-align: left; font-weight: bold;">Kullanıcı Adı</th>
+                        <th style="border: 1px solid #d1d5db; padding: 12px; text-align: left; font-weight: bold;">TC Kimlik</th>
+                        <th style="border: 1px solid #d1d5db; padding: 12px; text-align: left; font-weight: bold;">E-posta</th>
+                        <th style="border: 1px solid #d1d5db; padding: 12px; text-align: left; font-weight: bold;">Yetki</th>
+                        <th style="border: 1px solid #d1d5db; padding: 12px; text-align: left; font-weight: bold;">Durum</th>
+                        <th style="border: 1px solid #d1d5db; padding: 12px; text-align: left; font-weight: bold;">Kayıt Tarihi</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+            
+            mobileCards.forEach(card => {
+                const username = card.querySelector('.text-base.font-semibold')?.textContent.trim() || '';
+                const tcKimlik = card.querySelector('.bg-gray-50:nth-child(1) .text-gray-800')?.textContent.trim() || '';
+                const email = card.querySelector('.bg-gray-50:nth-child(2) .text-gray-800')?.textContent.trim() || '';
+                const kayitTarihi = card.querySelector('.bg-gray-50:nth-child(3) .text-gray-800')?.textContent.trim() || '';
+                
+                const yetkiSpan = card.querySelector('.bg-gradient-to-r');
+                const durumSpan = card.querySelector('.bg-green-100, .bg-red-100');
+                
+                const yetki = yetkiSpan ? yetkiSpan.textContent.trim() : '';
+                const durum = durumSpan ? durumSpan.textContent.trim() : '';
+                
+                content += '<tr>';
+                content += `<td style="border: 1px solid #d1d5db; padding: 12px;">${username}</td>`;
+                content += `<td style="border: 1px solid #d1d5db; padding: 12px;">${tcKimlik}</td>`;
+                content += `<td style="border: 1px solid #d1d5db; padding: 12px;">${email}</td>`;
+                content += `<td style="border: 1px solid #d1d5db; padding: 12px;">${yetki}</td>`;
+                content += `<td style="border: 1px solid #d1d5db; padding: 12px;">${durum}</td>`;
+                content += `<td style="border: 1px solid #d1d5db; padding: 12px;">${kayitTarihi}</td>`;
+                content += '</tr>';
+            });
+            
+            content += '</tbody></table>';
+        }
+        
+        content += '</div>';
+        
+        const opt = {
+            margin: [10, 10, 10, 10],
+            filename: `kullanicilar_${new Date().toISOString().split('T')[0]}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        };
+        
+        html2pdf().set(opt).from(content).save().then(() => {
+            showNotification('✅ PDF dosyası başarıyla indirildi!', 'success');
+        });
+        
+    } catch (error) {
+        console.error('PDF export error:', error);
+        showNotification('❌ PDF export hatası: ' + error.message, 'error');
+    }
+}
+
+// Notification system
+function showNotification(message, type = 'info') {
+    const container = document.getElementById('notificationContainer');
+    const notification = document.createElement('div');
     
-    const role = selectedRole.value;
-    const roleNames = {
-        'admin': 'Admin',
-        'il_sorumlusu': 'İl Sorumlusu',
-        'normal': 'Normal Kullanıcı'
+    const colors = {
+        success: 'bg-green-500 text-white',
+        error: 'bg-red-500 text-white',
+        warning: 'bg-yellow-500 text-white',
+        info: 'bg-blue-500 text-white'
     };
     
-    // Show loading state
-    const confirmBtn = document.getElementById('confirmRoleBtn');
-    const originalText = confirmBtn.innerHTML;
-    confirmBtn.innerHTML = '⏳ Değiştiriliyor...';
-    confirmBtn.disabled = true;
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
     
-    // Simulate API call
+    notification.className = `${colors[type]} px-4 py-3 rounded-lg shadow-lg transform translate-x-full transition-all duration-300 max-w-sm`;
+    notification.innerHTML = `
+        <div class="flex items-center gap-2">
+            <span class="text-lg">${icons[type]}</span>
+            <span class="font-medium text-sm">${message}</span>
+        </div>
+    `;
+    
+    container.appendChild(notification);
+    
     setTimeout(() => {
-        // Update role locally (in a real app, this would be an API call)
-        showNotification(`Kullanıcı yetkisi "${roleNames[role]}" olarak değiştirildi!`);
-        
-        // Restore button
-        confirmBtn.innerHTML = originalText;
-        confirmBtn.disabled = false;
-        
-        // Close modal
-        closeRoleModal();
-        
-    }, 1000);
+        notification.classList.remove('translate-x-full');
+        notification.classList.add('translate-x-0');
+    }, 100);
+    
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            if (container.contains(notification)) {
+                container.removeChild(notification);
+            }
+        }, 300);
+    }, 4000);
 }
 
-// Event listeners
-document.addEventListener('DOMContentLoaded', function() {
-    // Role change confirmation
-    document.getElementById('confirmRoleBtn').addEventListener('click', confirmRoleChange);
+// City assignment functions
+let currentCityUserId = null;
+
+function assignCities(userId, username) {
+    currentCityUserId = userId;
+    
+    document.getElementById('cityModalText').innerHTML = 
+        `<strong>${username}</strong> kullanıcısına sorumlu olacağı illeri seçin:`;
+    
+    // Mevcut atanan illeri yükle
+    loadUserCities(userId);
+    
+    document.getElementById('cityModal').classList.remove('hidden');
+}
+
+function closeCityModal() {
+    document.getElementById('cityModal').classList.add('hidden');
+    currentCityUserId = null;
+    
+    // Checkboxları temizle
+    document.querySelectorAll('input[name="cities"]').forEach(cb => cb.checked = false);
+    document.getElementById('selectAllCities').checked = false;
+}
+
+function toggleAllCities() {
+    const selectAll = document.getElementById('selectAllCities').checked;
+    document.querySelectorAll('input[name="cities"]').forEach(cb => {
+        cb.checked = selectAll;
+    });
+}
+
+function loadUserCities(userId) {
+    // AJAX ile kullanıcının mevcut il atamalarını yükle
+    fetch(`/veri/kullanici/${userId}/cities/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const userCities = data.cities || [];
+                document.querySelectorAll('input[name="cities"]').forEach(cb => {
+                    cb.checked = userCities.includes(cb.value);
+                });
+                
+                // Select All durumunu güncelle
+                const allCities = document.querySelectorAll('input[name="cities"]');
+                const checkedCities = document.querySelectorAll('input[name="cities"]:checked');
+                document.getElementById('selectAllCities').checked = allCities.length === checkedCities.length;
+            }
+        })
+        .catch(error => console.error('Error loading user cities:', error));
+}
+
+function confirmCityAssignment() {
+    if (currentCityUserId) {
+        const selectedCities = [];
+        document.querySelectorAll('input[name="cities"]:checked').forEach(cb => {
+            selectedCities.push(cb.value);
+        });
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        fetch(`/veri/kullanici/${currentCityUserId}/assign-cities/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({
+                cities: selectedCities
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            } else {
+                showNotification('Hata: ' + data.error, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Bir hata oluştu', 'error');
+        });
+        
+        closeCityModal();
+    }
+}
+
+// Close modals on outside click
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('fixed')) {
+        event.target.classList.add('hidden');
+    }
 });
-
-
 </script>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+    {% csrf_token %}
+    
+    <!-- Page Header -->
+    <div class="card p-4 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200">
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
+            {% if user.is_superuser %}
+            <div class="flex gap-2">
+                <a href="{% url 'veri_yonetimi:kullanici_ekle' %}" class="btn btn-primary text-sm">
+                    ➕ Yeni Kullanıcı Ekle
+                </a>
+                <a href="{% url 'veri_yonetimi:kullanici_loglari' %}" class="btn btn-secondary text-sm">
+                    📋 İşlem Logları
+                </a>
+                <a href="{% url 'veri_yonetimi:kullanici_loglari_excel' %}" class="btn btn-secondary text-sm">
+                    📊 Excel İndir
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1">
+        <!-- Total Users -->
+        <div class="card p-1 text-center bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200">
+            <div class="text-sm font-bold text-blue-600 mb-0.5">{{ kullanicilar.count|default:"0" }}</div>
+            <div class="text-xs text-blue-800 font-medium">Toplam Kullanıcı</div>
+            <div class="w-full bg-blue-200 rounded-full h-0.5 mt-1">
+                <div class="bg-blue-600 h-0.5 rounded-full" style="width: 100%"></div>
+            </div>
+        </div>
+
+        <!-- Admin Users -->
+        <div class="card p-1 text-center bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200">
+            <div class="text-sm font-bold text-purple-600 mb-0.5">{{ admin_count|default:"0" }}</div>
+            <div class="text-xs text-purple-800 font-medium">Admin Kullanıcı</div>
+            <div class="w-full bg-purple-200 rounded-full h-0.5 mt-1">
+                <div class="bg-purple-600 h-0.5 rounded-full" style="width: {% if kullanicilar.count %}{% widthratio admin_count kullanicilar.count 100 %}{% else %}0{% endif %}%"></div>
+            </div>
+        </div>
+
+        <!-- Active Users -->
+        <div class="card p-1 text-center bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200">
+            <div class="text-sm font-bold text-green-600 mb-0.5">{{ active_count|default:"0" }}</div>
+            <div class="text-xs text-green-800 font-medium">Aktif Kullanıcı</div>
+            <div class="w-full bg-green-200 rounded-full h-0.5 mt-1">
+                <div class="bg-green-600 h-0.5 rounded-full" style="width: {% if kullanicilar.count %}{% widthratio active_count kullanicilar.count 100 %}{% else %}0{% endif %}%"></div>
+            </div>
+        </div>
+
+        <!-- City Representatives -->
+        <div class="card p-1 text-center bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200">
+            <div class="text-sm font-bold text-orange-600 mb-0.5">{{ il_sorumlusu_count|default:"0" }}</div>
+            <div class="text-xs text-orange-800 font-medium">İl Sorumlusu</div>
+            <div class="w-full bg-orange-200 rounded-full h-0.5 mt-1">
+                <div class="bg-orange-600 h-0.5 rounded-full" style="width: {% if kullanicilar.count %}{% widthratio il_sorumlusu_count kullanicilar.count 100 %}{% else %}0{% endif %}%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    {% if kullanicilar %}
+    <div class="card p-4">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                📋 Kullanıcı Listesi
+                <span class="text-sm font-normal text-gray-500">({{ kullanicilar.count }} kullanıcı)</span>
+            </h3>
+            
+            {% if user.is_superuser %}
+            <div class="flex gap-2">
+                <button onclick="exportToExcel()" class="btn btn-secondary text-sm">
+                    📊 Excel İndir
+                </button>
+                <button onclick="exportToPDF()" class="btn btn-secondary text-sm">
+                    📄 PDF İndir
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="lg:hidden space-y-3">
+            {% for kullanici in kullanicilar %}
+            <div class="bg-white border border-gray-200 rounded-xl p-4 space-y-3 hover:border-blue-300 transition-all duration-200 hover:shadow-md">
+                <!-- User Header -->
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md">
+                            {% if kullanici.first_name and kullanici.last_name %}
+                                {{ kullanici.first_name|first }}{{ kullanici.last_name|first }}
+                            {% else %}
+                                {{ kullanici.username|first|upper }}
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="text-base font-semibold text-gray-800">{{ kullanici.username }}</div>
+                            <div class="text-sm text-gray-500">
+                                {{ kullanici.first_name|default:"İsim belirtilmemiş" }}
+                                {% if kullanici.last_name %}{{ kullanici.last_name }}{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Status Badge -->
+                    <div class="flex flex-col items-end gap-2">
+                        {% if kullanici.is_superuser %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-sm">
+                                👑 Admin
+                            </span>
+                        {% elif kullanici.is_staff %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm">
+                                👤 İl Sorumlusu
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-gray-500 to-gray-600 text-white shadow-sm">
+                                👤 Normal
+                            </span>
+                        {% endif %}
+                        
+                        {% if kullanici.is_active %}
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                ✅ Aktif
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                                ❌ Pasif
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- User Details Grid -->
+                <div class="grid grid-cols-3 gap-3 text-sm">
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <div class="text-gray-600 font-medium text-xs mb-1">TC Kimlik</div>
+                        <div class="text-gray-800 font-semibold">
+                            {% if kullanici.profile.tc_kimlik %}
+                                {{ kullanici.profile.tc_kimlik }}
+                            {% else %}
+                                <span class="text-gray-400">Belirtilmemiş</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <div class="text-gray-600 font-medium text-xs mb-1">Sorumlu İller</div>
+                        <div class="text-gray-800 font-semibold text-xs">
+                            {% if kullanici.profile.sorumlu_iller %}
+                                {{ kullanici.profile.get_sorumlu_iller_display }}
+                            {% else %}
+                                <span class="text-blue-600 font-medium">Tüm İller</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <div class="text-gray-600 font-medium text-xs mb-1">E-posta</div>
+                        <div class="text-gray-800 font-semibold">
+                            {{ kullanici.email|default:"<span class='text-gray-400'>Belirtilmemiş</span>"|safe }}
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <div class="text-gray-600 font-medium text-xs mb-1">Kayıt Tarihi</div>
+                        <div class="text-gray-800 font-semibold">{{ kullanici.date_joined|date:"d.m.Y" }}</div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <div class="text-gray-600 font-medium text-xs mb-1">Son Giriş</div>
+                        <div class="text-gray-800 font-semibold">
+                            {{ kullanici.last_login|date:"d.m.Y H:i"|default:"<span class='text-gray-400'>Hiç giriş yapmamış</span>"|safe }}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                {% if user.is_superuser %}
+                <div class="flex gap-2 pt-3 border-t border-gray-100">
+                    <a href="{% url 'veri_yonetimi:kullanici_guncelle' kullanici.pk %}" 
+                       class="btn btn-secondary text-sm flex-1 bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200">
+                        ✏️ Düzenle
+                    </a>
+                    <button onclick="assignCities({{ kullanici.pk }}, '{{ kullanici.username }}')" 
+                            class="btn btn-secondary text-sm flex-1 bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200">
+                        🏙️ İl Ata
+                    </button>
+                    
+                    <button onclick="toggleUserStatus({{ kullanici.pk }}, '{{ kullanici.username }}', {{ kullanici.is_active|yesno:'true,false' }})" 
+                            class="btn btn-secondary text-sm flex-1 {% if kullanici.is_active %}bg-red-50 text-red-700 hover:bg-red-100 border-red-200{% else %}bg-green-50 text-green-700 hover:bg-green-100 border-green-200{% endif %}">
+                        {% if kullanici.is_active %}❌ Pasif Yap{% else %}✅ Aktif Yap{% endif %}
+                    </button>
+                    
+                    <button onclick="changeUserRole({{ kullanici.pk }}, '{{ kullanici.username }}')" 
+                            class="btn btn-secondary text-sm flex-1 bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200">
+                        🔄 Yetki Değiştir
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Desktop Table View -->
+        <div class="hidden lg:block">
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sıra</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sütun Adı</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tip</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Menü Tipi</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Genişlik</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for kullanici in kullanicilar %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ forloop.counter }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ kullanici.username }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if kullanici.profile.tc_kimlik %}
+                                    {{ kullanici.profile.tc_kimlik }}
+                                {% else %}
+                                    <span class="text-gray-400">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ kullanici.email|default:"-" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if kullanici.is_superuser %}
+                                    👑 Admin
+                                {% elif kullanici.is_staff %}
+                                    👤 İl Sorumlusu
+                                {% else %}
+                                    👤 Normal
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if kullanici.is_active %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        ✅ Aktif
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                        ❌ Pasif
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ kullanici.date_joined|date:"d.m.Y" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'veri_yonetimi:kullanici_guncelle' kullanici.pk %}" 
+                                       class="text-blue-600 hover:text-blue-900">Düzenle</a>
+                                    <button onclick="toggleUserStatus({{ kullanici.pk }}, '{{ kullanici.username }}', {{ kullanici.is_active|yesno:'true,false' }})" 
+                                            class="text-red-600 hover:text-red-900">
+                                        {% if kullanici.is_active %}Pasif Yap{% else %}Aktif Yap{% endif %}
+                                    </button>
+                                    <button onclick="changeUserRole({{ kullanici.pk }}, '{{ kullanici.username }}')" 
+                                            class="text-purple-600 hover:text-purple-900">Yetki Değiştir</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- No Users Available -->
+    <div class="bg-white rounded-lg shadow-md border border-gray-100 p-8 text-center">
+        <div class="text-6xl mb-4">👥</div>
+        <h3 class="text-xl font-semibold text-gray-800 mb-2">Kullanıcı Bulunamadı</h3>
+        <p class="text-gray-600 mb-6">
+            Henüz hiç kullanıcı eklenmemiş.
+        </p>
+        <div class="flex flex-wrap justify-center gap-3">
+            <a href="{% url 'veri_yonetimi:kullanici_ekle' %}" 
+               class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+                ➕ İlk Kullanıcıyı Ekle
+            </a>
+            <a href="{% url 'veri_yonetimi:ana_sayfa' %}" 
+               class="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors">
+                🏠 Ana Sayfa
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Status Change Modal -->
+<div id="statusModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
+                <span class="text-yellow-600 text-xl">⚠️</span>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mt-2">Durum Değiştir</h3>
+            <div class="mt-2 px-7 py-3">
+                <p id="statusModalText" class="text-sm text-gray-500"></p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeStatusModal()" class="btn btn-secondary flex-1">İptal</button>
+                <button onclick="confirmStatusChange()" class="btn btn-primary flex-1">Onayla</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Role Change Modal -->
+<div id="roleModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-purple-100">
+                <span class="text-purple-600 text-xl">👑</span>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mt-2">Yetki Değiştir</h3>
+            <div class="mt-2 px-7 py-3">
+                <p id="roleModalText" class="text-sm text-gray-500"></p>
+            </div>
+            <div class="space-y-2 mb-4">
+                <label class="flex items-center gap-2">
+                    <input type="radio" name="newRole" value="normal" class="text-purple-600">
+                    <span class="text-sm">Normal Kullanıcı</span>
+                </label>
+                <label class="flex items-center gap-2">
+                    <input type="radio" name="newRole" value="staff" class="text-purple-600">
+                    <span class="text-sm">İl Sorumlusu</span>
+                </label>
+                <label class="flex items-center gap-2">
+                    <input type="radio" name="newRole" value="superuser" class="text-purple-600">
+                    <span class="text-sm">Admin</span>
+                </label>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="closeRoleModal()" class="btn btn-secondary flex-1">İptal</button>
+                <button onclick="confirmRoleChange()" class="btn btn-primary flex-1">Onayla</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- City Assignment Modal -->
+<div id="cityModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">🏙️ Sorumlu İl Ataması</h3>
+            <p id="cityModalText" class="text-gray-600 mb-4"></p>
+            
+            <!-- Select All Checkbox -->
+            <div class="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="selectAllCities" onchange="toggleAllCities()" class="rounded text-blue-600">
+                    <span class="font-medium text-blue-800">📍 Tüm İlleri Seç</span>
+                </label>
+            </div>
+            
+            <!-- Cities Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-6 max-h-60 overflow-y-auto">
+                {% for il in turkiye_illeri %}
+                <label class="flex items-center gap-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                    <input type="checkbox" name="cities" value="{{ il }}" class="rounded text-purple-600">
+                    <span class="text-sm">{{ il }}</span>
+                </label>
+                {% endfor %}
+            </div>
+            
+            <div class="flex gap-3">
+                <button onclick="closeCityModal()" class="btn btn-secondary flex-1">İptal</button>
+                <button onclick="confirmCityAssignment()" class="btn btn-primary flex-1">Ata</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Container -->
+<div id="notificationContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
 {% endblock %}
 

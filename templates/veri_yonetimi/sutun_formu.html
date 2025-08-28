@@ -1,102 +1,196 @@
 {% extends 'base.html' %}
 
 {% block title %}
-    {% if is_edit %}Sütun Güncelle{% else %}Sütun Ekle{% endif %} - Dinamik Veri Yönetim Paneli
+    {% if is_edit %}Sütun Güncelle{% else %}Sütun Ekle{% endif %} - {{ app_name|default:"DVP" }}
 {% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
-    <div class="card">
-        <div class="flex flex-col sm:flex-row sm:items-center mb-4 sm:mb-6 space-y-3 sm:space-y-0">
-            <a href="{% url 'veri_yonetimi:sutun_listesi' %}" class="text-blue-600 hover:text-blue-800 text-sm sm:text-base order-2 sm:order-1">
-                ← Geri Dön
-            </a>
-            <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 order-1 sm:order-2">
-                {% if is_edit %}
-                    ✏️ Sütun Güncelle
-                {% else %}
-                    ➕ Yeni Sütun Ekle
-                {% endif %}
-            </h1>
+<div class="min-h-screen p-4">
+    <div class="w-full">
+        
+        <!-- Test Veri Butonu -->
+        {% if not is_edit %}
+        <div class="text-center mb-6">
+            <button type="button" onclick="generateFakeData()" 
+                    class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                🎲 Test Verisi
+            </button>
         </div>
-
-        <form method="post" class="space-y-4 sm:space-y-6">
+        {% endif %}
+        
+        <!-- Form -->
+        <form method="post" class="space-y-4">
             {% csrf_token %}
             
-            <div class="space-y-4 sm:space-y-6">
-                <div>
-                    <label for="{{ form.ad.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Sütun Adı
-                    </label>
-                    {{ form.ad }}
-                    {% if form.ad.errors %}
-                        <div class="mt-1 text-xs sm:text-sm text-red-600">
-                            {{ form.ad.errors.0 }}
-                        </div>
-                    {% endif %}
-                    <p class="mt-1 text-xs sm:text-sm text-gray-500">
-                        Sütunun görünecek adını girin (örn: "İl Adı", "Bölge", "Nüfus")
-                    </p>
-                </div>
-
-                <div>
-                    <label for="{{ form.sıra.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
-                        Sıra
-                    </label>
-                    {{ form.sıra }}
-                    {% if form.sıra.errors %}
-                        <div class="mt-1 text-xs sm:text-sm text-red-600">
-                            {{ form.sıra.errors.0 }}
-                        </div>
-                    {% endif %}
-                    <p class="mt-1 text-xs sm:text-sm text-gray-500">
-                        Sütunun tabloda görüneceği sırayı belirleyin (0, 1, 2, 3...)
-                    </p>
-                </div>
-
-                <div class="flex items-center">
-                    {{ form.aktif }}
-                    <label for="{{ form.aktif.id_for_label }}" class="ml-2 block text-sm text-gray-700">
-                        Sütun Aktif
-                    </label>
-                    {% if form.aktif.errors %}
-                        <div class="mt-1 text-xs sm:text-sm text-red-600">
-                            {{ form.aktif.errors.0 }}
-                        </div>
-                    {% endif %}
-                </div>
-                <p class="text-xs sm:text-sm text-gray-500">
-                    Aktif olmayan sütunlar tabloda görünmez ve veri girişinde kullanılamaz.
-                </p>
-            </div>
-
-            {% if form.non_field_errors %}
-                <div class="bg-red-50 border border-red-200 rounded-md p-3 sm:p-4">
-                    <div class="text-red-600 text-xs sm:text-sm">
-                        {{ form.non_field_errors.0 }}
+            <!-- Error Messages -->
+            {% if form.errors %}
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="text-red-600">⚠️</span>
+                        <h3 class="text-red-800 font-medium">Form hataları bulundu</h3>
                     </div>
+                    <ul class="text-red-700 text-sm space-y-1">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <li>• {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
                 </div>
             {% endif %}
 
-            <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4 pt-4 sm:pt-6 border-t">
-                <a href="{% url 'veri_yonetimi:sutun_listesi' %}" class="btn-secondary w-full sm:w-auto text-center">
-                    ❌ İptal
-                </a>
-                <button type="submit" class="btn-success w-full sm:w-auto">
-                    {% if is_edit %}
-                        💾 Güncelle
-                    {% else %}
-                        ➕ Ekle
+            <!-- Form Fields -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Sütun Adı -->
+                <div class="md:col-span-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        📝 Sütun Adı
+                        <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" 
+                           name="ad" 
+                           value="{{ form.ad.value|default:'' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                           placeholder="İl Adı, Bölge, Nüfus..."
+                           required>
+                    {% if form.ad.errors %}
+                        <div class="mt-1 text-xs text-red-600">{{ form.ad.errors.0 }}</div>
                     {% endif %}
+                </div>
+                
+                <!-- Sütun Tipi -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        🏷️ Sütun Tipi
+                    </label>
+                    <select name="tip" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                        <option value="dinamik" {% if form.tip.value == 'dinamik' %}selected{% endif %}>Dinamik Sütun</option>
+                        <option value="kurulacak" {% if form.tip.value == 'kurulacak' %}selected{% endif %}>Kurulacak Cihaz Sayısı</option>
+                        <option value="kurulan" {% if form.tip.value == 'kurulan' %}selected{% endif %}>Kurulan Cihaz Sayısı</option>
+                        <option value="arizali" {% if form.tip.value == 'arizali' %}selected{% endif %}>Arızalı Cihaz Sayısı</option>
+                        <option value="tamamlanma" {% if form.tip.value == 'tamamlanma' %}selected{% endif %}>Tamamlanma Durumu</option>
+                    </select>
+                    {% if form.tip.errors %}
+                        <div class="mt-1 text-xs text-red-600">{{ form.tip.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Menü Tipi -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        📱 Menü Tipi
+                    </label>
+                    <select name="menu_tipi" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                        <option value="genel" {% if form.menu_tipi.value == 'genel' %}selected{% endif %}>Genel (Tüm Menüler)</option>
+                        <option value="veri_listesi" {% if form.menu_tipi.value == 'veri_listesi' %}selected{% endif %}>Veri Listesi</option>
+                        <option value="cihaz_turleri" {% if form.menu_tipi.value == 'cihaz_turleri' %}selected{% endif %}>Cihaz Türleri</option>
+                    </select>
+                    {% if form.menu_tipi.errors %}
+                        <div class="mt-1 text-xs text-red-600">{{ form.menu_tipi.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Sıra -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        🔢 Sıra
+                    </label>
+                    <input type="number" 
+                           name="sıra" 
+                           value="{{ form.sıra.value|default:'1' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                           placeholder="0, 1, 2, 3..."
+                           min="0"
+                           step="1">
+                    {% if form.sıra.errors %}
+                        <div class="mt-1 text-xs text-red-600">{{ form.sıra.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Genişlik -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        📏 Genişlik
+                    </label>
+                    <input type="text" 
+                           name="genislik" 
+                           value="{{ form.genislik.value|default:'auto' }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                           placeholder="auto, 100px, 20%">
+                    {% if form.genislik.errors %}
+                        <div class="mt-1 text-xs text-red-600">{{ form.genislik.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Hizalama -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        ↔️ Hizalama
+                    </label>
+                    <select name="hizalama" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                        <option value="left" {% if form.hizalama.value == 'left' %}selected{% endif %}>Sol</option>
+                        <option value="center" {% if form.hizalama.value == 'center' %}selected{% endif %}>Orta</option>
+                        <option value="right" {% if form.hizalama.value == 'right' %}selected{% endif %}>Sağ</option>
+                    </select>
+                    {% if form.hizalama.errors %}
+                        <div class="mt-1 text-xs text-red-600">{{ form.hizalama.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Checkboxes -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                <div class="flex items-center">
+                    <input type="checkbox" 
+                           name="aktif" 
+                           id="aktif"
+                           {% if form.aktif.value %}checked{% endif %}
+                           class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="aktif" class="ml-2 text-sm text-gray-700">
+                        ✅ Sütun Aktif
+                    </label>
+                </div>
+                
+                <div class="flex items-center">
+                    <input type="checkbox" 
+                           name="gorunur" 
+                           id="gorunur"
+                           {% if form.gorunur.value %}checked{% endif %}
+                           class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="gorunur" class="ml-2 text-sm text-gray-700">
+                        👁️ Sütun Görünür
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Info Text -->
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p class="text-sm text-blue-800">
+                    💡 <strong>Bilgi:</strong> Aktif olmayan sütunlar tabloda görünmez ve veri girişinde kullanılamaz.
+                </p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3 pt-4">
+                <button type="submit" 
+                        class="flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+                    {% if is_edit %}💾 Güncelle{% else %}➕ Sütun Ekle{% endif %}
                 </button>
+                <a href="{% url 'veri_yonetimi:sutun_listesi' %}" 
+                   class="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors">
+                   ❌ İptal
+                </a>
             </div>
         </form>
-    </div>
-
-    {% if is_edit and sutun %}
-        <div class="mt-4 sm:mt-6 card">
-            <h3 class="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">📋 Sütun Bilgileri</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
+        
+        <!-- Sütun Bilgileri (Sadece düzenleme modunda) -->
+        {% if is_edit and sutun %}
+        <div class="mt-8 bg-gray-50 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">📋 Sütun Bilgileri</h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-sm">
                 <div>
                     <span class="font-medium text-gray-700">Oluşturulma Tarihi:</span>
                     <span class="text-gray-600 ml-2">{{ sutun.oluşturulma_tarihi|date:"d.m.Y H:i" }}</span>
@@ -106,21 +200,39 @@
                     <span class="text-gray-600 ml-2">{{ sutun.sıra }}</span>
                 </div>
                 <div>
-                    <span class="font-medium text-gray-700">Durum:</span>
-                    <span class="text-gray-600 ml-2">
-                        {% if sutun.aktif %}
-                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                ✅ Aktif
-                            </span>
-                        {% else %}
-                            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                ❌ Pasif
-                            </span>
-                        {% endif %}
-                    </span>
+                    <span class="font-medium text-gray-700">Tip:</span>
+                    <span class="text-gray-600 ml-2">{{ sutun.get_tip_display }}</span>
+                </div>
+                <div>
+                    <span class="font-medium text-gray-700">Menü:</span>
+                    <span class="text-gray-600 ml-2">{{ sutun.get_menu_tipi_display }}</span>
                 </div>
             </div>
         </div>
-    {% endif %}
+        {% endif %}
+    </div>
 </div>
+
+<script>
+function generateFakeData() {
+    // Sütun adları listesi
+    const sutunAdlari = ['İl Adı', 'Bölge', 'Nüfus', 'Yüzölçümü', 'İklim', 'Ekonomi', 'Turizm', 'Eğitim', 'Sağlık', 'Ulaşım'];
+    const randomAd = sutunAdlari[Math.floor(Math.random() * sutunAdlari.length)];
+    
+    // Rastgele değerler
+    const randomSira = Math.floor(Math.random() * 10) + 1;
+    const randomGenislik = ['auto', '100px', '150px', '200px', '20%'][Math.floor(Math.random() * 5)];
+    
+    // Form alanlarını doldur
+    document.querySelector('input[name="ad"]').value = randomAd;
+    document.querySelector('input[name="sıra"]').value = randomSira;
+    document.querySelector('input[name="genislik"]').value = randomGenislik;
+    
+    // Checkbox'ları işaretle
+    document.querySelector('input[name="aktif"]').checked = true;
+    document.querySelector('input[name="gorunur"]').checked = true;
+    
+    alert('🎲 Test verileri eklendi!');
+}
+</script>
 {% endblock %}

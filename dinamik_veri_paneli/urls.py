@@ -23,6 +23,7 @@ from django.views.generic import RedirectView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', RedirectView.as_view(url='/veri/', permanent=False)),
+    path('login/', RedirectView.as_view(url='/veri/login/', permanent=False)),
     path('veri/', include('veri_yonetimi.urls')),
     path('api/', include('veri_yonetimi.api_urls')),
 ]
@@ -37,7 +38,4 @@ urlpatterns = [
 # Media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-# Static files in production
-if not settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

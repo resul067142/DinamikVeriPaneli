@@ -15,7 +15,13 @@ urlpatterns = [
     path('kullanicilar/', views.kullanici_listesi, name='kullanici_listesi'),
     path('kullanici/ekle/', views.kullanici_ekle, name='kullanici_ekle'),
     path('kullanici/guncelle/<int:pk>/', views.kullanici_guncelle, name='kullanici_guncelle'),
+    path('kullanici/<int:pk>/toggle-status/', views.toggle_user_status, name='toggle_user_status'),
+    path('kullanici/<int:pk>/change-role/', views.change_user_role, name='change_user_role'),
+    path('kullanici/<int:pk>/cities/', views.get_user_cities, name='get_user_cities'),
+    path('kullanici/<int:pk>/assign-cities/', views.assign_cities_to_user, name='assign_cities_to_user'),
     path('kullanici/fake-tc/', views.generate_fake_tc, name='generate_fake_tc'),
+    path('kullanici/loglari/', views.kullanici_loglari, name='kullanici_loglari'),
+    path('kullanici/loglari/excel/', views.kullanici_loglari_excel, name='kullanici_loglari_excel'),
     path('login/', auth_views.user_login, name='user_login'),
     path('register/', auth_views.user_register, name='user_register'),
     path('logout/', auth_views.user_logout, name='user_logout'),
@@ -34,6 +40,8 @@ urlpatterns = [
     
     # Site ayarları
     path('update-app-settings/', views.update_app_settings, name='update_app_settings'),
-    path('cihaz-turleri/', views.cihaz_turleri, name='cihaz_turleri'),
-    path('illere-gore-cihaz-turleri/', views.illere_gore_cihaz_turleri, name='illere_gore_cihaz_turleri'),
+    
+
+    
+
 ]

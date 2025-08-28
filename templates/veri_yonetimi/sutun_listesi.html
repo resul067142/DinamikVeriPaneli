@@ -1,355 +1,224 @@
 {% extends 'base.html' %}
 {% load custom_filters %}
 
-{% block title %}Sütun Yönetimi - DVP{% endblock %}
+{% block title %}Veri Yapısı ve Sütun Yönetimi - {{ app_name|default:"DVP" }}{% endblock %}
 
 {% block content %}
 <!-- CSRF Token -->
 {% csrf_token %}
 
-<div class="max-w-6xl mx-auto space-y-6">
+<div class="w-full mx-auto space-y-6 px-4 py-4">
     
-
     <!-- App Settings Card -->
-    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 mb-6">
-        <div class="flex items-center gap-3 mb-4">
-            <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl flex items-center justify-center">
-                <span class="text-white text-xl">⚙️</span>
-            </div>
-            <h2 class="text-xl font-bold text-gray-800">⚙️ Uygulama Ayarları</h2>
-        </div>
+    <div class="bg-white rounded-lg shadow-md border border-gray-100 p-3 mb-3">
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <!-- App Logo Section -->
-            <div class="space-y-3">
-                <label class="block text-base font-bold text-gray-700">🖼️ App Logo</label>
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">🖼️ App Logo</label>
                 <div class="flex items-center space-x-3">
-                    <div id="logoPreview" class="w-16 h-16 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <img id="logoImage" src="https://via.placeholder.com/64x64/667eea/ffffff?text=📱" alt="App Logo" class="w-12 h-12 rounded-lg">
+                    <div id="logoPreview" class="w-12 h-12 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-sm overflow-hidden">
+                        <img id="logoImage" src="{% if app_logo %}{{ app_logo }}{% else %}https://via.placeholder.com/48x48/667eea/ffffff?text=📱{% endif %}" 
+                             alt="App Logo" class="w-10 h-10 rounded-lg object-cover">
                     </div>
                     <div class="flex-1">
-                        <input type="file" id="logoInput" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-base focus:border-purple-500 focus:ring-1 focus:ring-purple-500" onchange="previewLogo(this)">
-                        <p class="text-sm text-gray-500 mt-1">PNG, JPG veya GIF (max 2MB)</p>
-                </div>
+                        <input type="file" id="logoInput" accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500" onchange="previewLogo(this)">
+                        <p class="text-xs text-gray-500 mt-1">PNG, JPG veya GIF (max 2MB)</p>
+                    </div>
                 </div>
             </div>
             
             <!-- App Name Section -->
-            <div class="space-y-3">
-                <label class="block text-base font-bold text-gray-700">🏷️ Uygulama Adı</label>
+            <div class="space-y-2">
+                <label class="block text-sm font-medium text-gray-700">🏷️ Uygulama Adı</label>
                 <input type="text" id="appNameInput" value="{{ app_name|default:'DVP' }}" 
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                        placeholder="Uygulama adını girin...">
-                <p class="text-sm text-gray-500">Sidebar'da görünecek uygulama adı</p>
-        </div>
+            </div>
             
             <!-- App Description Section -->
-            <div class="space-y-3 md:col-span-2">
-                <label class="block text-base font-bold text-gray-700">📝 Uygulama Açıklaması</label>
+            <div class="space-y-2 md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700">📝 Uygulama Açıklaması</label>
                 <textarea id="appDescInput" rows="3" 
-                          class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                           placeholder="Uygulama açıklamasını girin...">{{ app_description|default:'Dinamik Veri Paneli' }}</textarea>
-                <p class="text-sm text-gray-500">Sidebar'da görünecek açıklama metni</p>
             </div>
         </div>
         
         <!-- Action Buttons -->
-        <div class="flex gap-3 mt-6 pt-4 border-t border-gray-200">
-            <button onclick="updateAppSettings()" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold rounded-xl transition-all duration-200 hover:shadow-lg active:scale-95">
+        <div class="flex gap-3 mt-4 pt-3 border-t border-gray-200">
+            <button onclick="updateAppSettings()" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium rounded-md transition-all duration-200 hover:shadow-md active:scale-95 text-sm">
                 💾 Tüm Ayarları Kaydet
-                        </button>
-            <button onclick="resetAppSettings()" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all duration-200 hover:shadow-md active:scale-95">
+            </button>
+            <button onclick="resetAppSettings()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md transition-all duration-200 hover:shadow-sm active:scale-95 text-sm">
                 🔄 Varsayılana Sıfırla
-                        </button>
+            </button>
         </div>
     </div>
 
-    <!-- Columns Management -->
+    <!-- Veri Yönetimi ve Sütun Yapılandırması -->
     {% if sutunlar %}
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div class="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-200">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-xl font-bold text-gray-800">📋 Mevcut Sütunlar</h2>
-                    <div class="flex items-center gap-3">
-                        <div class="bg-white px-3 py-1 rounded-full border border-gray-200">
-                            <span class="text-base font-bold text-gray-700">Toplam: {{ sutunlar.count }} sütun</span>
-                        </div>
+    <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-800">🔧 Veri Yapısı ve Sütun Yönetimi</h2>
+                <div class="flex items-center gap-3">
+                    <div class="bg-white px-3 py-1 rounded-full border border-gray-200">
+                        <span class="text-sm font-medium text-gray-700">Toplam: {{ sutunlar.count }} sütun</span>
                     </div>
+                    <a href="{% url 'veri_yonetimi:sutun_ekle' %}" 
+                       class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-md transition-colors text-sm">
+                        ➕ Yeni Sütun Ekle
+                    </a>
                 </div>
             </div>
-
-            <!-- Mobile Card View -->
-            <div class="lg:hidden p-6">
-                <div class="space-y-4">
-                    {% for sutun in sutunlar %}
-                    <div class="bg-gradient-to-r from-gray-50 to-white border-2 border-gray-200 rounded-xl p-4 hover:border-purple-300 hover:shadow-md transition-all duration-200">
-                        <div class="flex justify-between items-start mb-3">
-                            <div class="flex items-center gap-3">
-                                <div class="bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 px-3 py-1 rounded-full text-sm font-bold">
-                                    #{{ sutun.sıra }}
-            </div>
-                                <div class="text-lg font-bold text-gray-800">{{ sutun.ad }}</div>
         </div>
-                            <div class="flex items-center gap-2">
+
+        <!-- Mobile Card View -->
+        <div class="lg:hidden p-4">
+            <!-- Mobile Yeni Sütun Ekle Butonu -->
+            <div class="mb-4">
+                <a href="{% url 'veri_yonetimi:sutun_ekle' %}" 
+                   class="w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors text-center block">
+                    ➕ Yeni Sütun Ekle
+                </a>
+            </div>
+            
+            <div class="w-full space-y-3">
+                {% for sutun in sutunlar %}
+                <div class="bg-gradient-to-r from-gray-50 to-white border border-gray-200 rounded-lg p-4 hover:border-purple-300 hover:shadow-md transition-all duration-200">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 px-2 py-1 rounded-full text-xs font-medium">
+                                #{{ sutun.sıra }}
+                            </div>
+                            <div class="text-base font-medium text-gray-800">{{ sutun.ad }}</div>
+                        </div>
+                        <div class="flex items-center gap-2">
                             {% if sutun.aktif %}
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300">
                                     ✅ Aktif
                                 </span>
                             {% else %}
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300">
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300">
                                     ❌ Pasif
                                 </span>
                             {% endif %}
                         </div>
                     </div>
                     
-                        <div class="text-sm text-gray-500 mb-3">
-                            📅 Oluşturulma: {{ sutun.oluşturulma_tarihi|date:"d.m.Y H:i" }}
+                    <div class="space-y-2">
+                        <div class="text-sm text-gray-600">
+                            <span class="font-medium">Tip:</span> {{ sutun.get_tip_display }}
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <span class="font-medium">Menü:</span> {{ sutun.get_menu_tipi_display }}
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <span class="font-medium">Sıra:</span> {{ sutun.sıra }}
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <span class="font-medium">Genişlik:</span> {{ sutun.genislik|default:"Otomatik" }}
+                        </div>
                     </div>
                     
-                    {% if user.is_superuser %}
-                        <div class="flex gap-2 pt-3 border-t border-gray-100">
-                        <a href="{% url 'veri_yonetimi:sutun_guncelle' sutun.pk %}" 
-                               class="flex-1 px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-200 hover:from-blue-200 hover:to-blue-300 text-blue-800 font-bold rounded-lg transition-all duration-200 hover:shadow-md active:scale-95 text-center text-base">
+                    <div class="flex gap-2 mt-3">
+                        <a href="{% url 'veri_yonetimi:sutun_guncelle' sutun.id %}" 
+                           class="flex-1 px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 font-medium rounded-md transition-colors text-xs text-center">
                             ✏️ Düzenle
                         </a>
-                        <a href="{% url 'veri_yonetimi:sutun_sil' sutun.pk %}" 
-                               class="flex-1 px-4 py-2 bg-gradient-to-r from-red-100 to-red-200 hover:from-red-200 hover:to-red-300 text-red-800 font-bold rounded-lg transition-all duration-200 hover:shadow-md active:scale-95 text-center text-base">
+                        <a href="{% url 'veri_yonetimi:sutun_sil' sutun.id %}" 
+                           class="flex-1 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 font-medium rounded-md transition-colors text-xs text-center">
                             🗑️ Sil
                         </a>
                     </div>
-                    {% endif %}
                 </div>
                 {% endfor %}
-                </div>
             </div>
+        </div>
 
-            <!-- Desktop Table View -->
-            <div class="hidden lg:block p-6">
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                    <thead>
-                            <tr class="border-b-2 border-gray-200">
-                                <th class="text-left py-4 px-4 font-bold text-gray-700 text-base">Sıra</th>
-                                <th class="text-left py-4 px-4 font-bold text-gray-700 text-base">Sütun Adı</th>
-                                <th class="text-left py-4 px-4 font-bold text-gray-700 text-base">Durum</th>
-                                <th class="text-left py-4 px-4 font-bold text-gray-700 text-base">Oluşturulma Tarihi</th>
-                            {% if user.is_superuser %}
-                                <th class="text-left py-4 px-4 font-bold text-gray-700 text-base">İşlemler</th>
-                            {% endif %}
+        <!-- Desktop Table View -->
+        <div class="hidden lg:block">
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sıra</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sütun Adı</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tip</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Menü Tipi</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Genişlik</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
                         </tr>
                     </thead>
-                        <tbody class="divide-y divide-gray-100">
+                    <tbody class="bg-white divide-y divide-gray-200">
                         {% for sutun in sutunlar %}
-                            <tr class="hover:bg-gradient-to-r hover:from-gray-50 hover:to-white transition-all duration-200">
-                                <td class="py-4 px-4">
-                                    <div class="bg-gradient-to-r from-purple-100 to-purple-200 px-3 py-2 rounded-lg text-center font-bold text-purple-700 text-base">
-                                    {{ sutun.sıra }}
-                                </div>
-                            </td>
-                                <td class="py-4 px-4">
-                                    <div class="font-bold text-gray-800 text-lg">{{ sutun.ad }}</div>
-                            </td>
-                                <td class="py-4 px-4">
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ sutun.sıra }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ sutun.ad }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sutun.get_tip_display }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sutun.get_menu_tipi_display }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
                                 {% if sutun.aktif %}
-                                        <span class="inline-flex items-center px-3 py-2 rounded-full text-base font-bold bg-gradient-to-r from-green-100 to-green-200 text-green-800 border border-green-300">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                         ✅ Aktif
                                     </span>
                                 {% else %}
-                                        <span class="inline-flex items-center px-3 py-2 rounded-full text-base font-bold bg-gradient-to-r from-red-100 to-red-200 text-red-800 border border-red-300">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                         ❌ Pasif
                                     </span>
                                 {% endif %}
                             </td>
-                                <td class="py-4 px-4 text-gray-500 text-base">
-                                    📅 {{ sutun.oluşturulma_tarihi|date:"d.m.Y H:i" }}
-                            </td>
-                            {% if user.is_superuser %}
-                                <td class="py-4 px-4">
-                                    <div class="flex gap-2">
-                                    <a href="{% url 'veri_yonetimi:sutun_guncelle' sutun.pk %}" 
-                                           class="px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-200 hover:from-blue-200 hover:to-blue-300 text-blue-800 font-bold rounded-lg transition-all duration-200 hover:shadow-md active:scale-95 text-base">
-                                        ✏️ Düzenle
-                                    </a>
-                                    <a href="{% url 'veri_yonetimi:sutun_sil' sutun.pk %}" 
-                                           class="px-4 py-2 bg-gradient-to-r from-red-100 to-red-200 hover:from-red-200 hover:to-red-300 text-red-800 font-bold rounded-lg transition-all duration-200 hover:shadow-md active:scale-95 text-base">
-                                        🗑️ Sil
-                                    </a>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ sutun.genislik|default:"Otomatik" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'veri_yonetimi:sutun_guncelle' sutun.id %}" 
+                                       class="text-blue-600 hover:text-blue-900">Düzenle</a>
+                                    <a href="{% url 'veri_yonetimi:sutun_sil' sutun.id %}" 
+                                       class="text-red-600 hover:text-red-900">Sil</a>
                                 </div>
-                                </td>
-                            {% endif %}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-            
-                <!-- Results Summary -->
-                <div class="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200 text-center">
-                    <p class="text-green-800 font-bold text-base">🎉 Toplam {{ sutunlar.count }} sütun başarıyla yönetiliyor!</p>
-                </div>
-                </div>
-            </div>
-        {% else %}
-        <!-- Empty State -->
-        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-center">
-            <div class="inline-block p-6 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full mb-6">
-                <span class="text-6xl">📭</span>
-            </div>
-            <h3 class="text-2xl font-bold text-gray-800 mb-3">Henüz sütun tanımlanmamış</h3>
-            <p class="text-gray-600 mb-6 text-xl">
-                    İlk sütununuzu eklemek için aşağıdaki butona tıklayın.
-                </p>
-                {% if user.is_superuser %}
-            <div class="flex flex-wrap justify-center gap-4 mb-8">
-                <a href="{% url 'veri_yonetimi:sutun_ekle' %}" class="px-8 py-4 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold rounded-xl transition-all duration-200 hover:shadow-lg active:scale-95 text-xl">
-                    ➕ İlk Sütunu Ekle
-                </a>
-                <a href="{% url 'veri_yonetimi:ana_sayfa' %}" class="px-8 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-all duration-200 hover:shadow-md active:scale-95 text-xl">
-                    🏠 Ana Sayfaya Dön
-                </a>
-            </div>
-        {% endif %}
-            
-            <!-- Quick Help -->
-            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-6">
-                <h4 class="text-xl font-bold text-blue-800 mb-4">💡 Hızlı Başlangıç Rehberi</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-base text-blue-700">
-                    <div class="space-y-2">
-                        <div class="flex items-center gap-2">
-                            <span class="w-6 h-6 bg-blue-200 rounded-full flex items-center justify-center text-blue-700 font-bold">1</span>
-                            <span><strong>Yeni Sütun Ekle</strong> butonuna tıklayın</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-6 h-6 bg-blue-200 rounded-full flex items-center justify-center text-blue-700 font-bold">2</span>
-                            <span><strong>Plaka</strong> sütununu ekleyin (zorunlu)</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-6 h-6 bg-blue-200 rounded-full flex items-center justify-center text-blue-700 font-bold">3</span>
-                            <span><strong>İl Adı</strong> sütununu ekleyin</span>
-                        </div>
-                    </div>
-                    <div class="space-y-2">
-                        <div class="flex items-center gap-2">
-                            <span class="w-6 h-6 bg-blue-200 rounded-full flex items-center justify-center text-blue-700 font-bold">4</span>
-                            <span>Diğer gerekli sütunları ekleyin</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-6 h-6 bg-blue-200 rounded-full flex items-center justify-center text-blue-700 font-bold">5</span>
-                            <span>Sütunları <strong>sıralayın</strong> ve <strong>aktifleştirin</strong></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
+    </div>
+    {% else %}
+    <!-- No Columns Available -->
+    <div class="bg-white rounded-lg shadow-md border border-gray-100 p-8 text-center">
+        <div class="text-6xl mb-4">⚠️</div>
+        <h3 class="text-xl font-semibold text-gray-800 mb-2">Sütun Bulunamadı</h3>
+        <p class="text-gray-600 mb-6">
+            Veri eklemek için önce sütun tanımlamaları yapılmalıdır.
+        </p>
+        <div class="flex flex-wrap justify-center gap-3">
+            <a href="{% url 'veri_yonetimi:sutun_ekle' %}" 
+               class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
+                ➕ Yeni Sütun Ekle
+            </a>
+            <a href="{% url 'veri_yonetimi:ana_sayfa' %}" 
+               class="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors">
+                🏠 Ana Sayfa
+            </a>
+        </div>
+    </div>
     {% endif %}
-
-    <!-- Help Section -->
-    <div class="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
-        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <span class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">💡</span>
-            Sütun Yönetimi Yardımı
-        </h3>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-3">
-                <h4 class="font-bold text-gray-700 text-lg">📋 Zorunlu Sütunlar</h4>
-                <div class="space-y-2 text-base text-gray-600">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 bg-red-500 rounded-full"></span>
-                        <span><strong>Plaka:</strong> İl plaka kodu (01-81)</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 bg-red-500 rounded-full"></span>
-                        <span><strong>İl Adı:</strong> İlin tam adı</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="space-y-3">
-                <h4 class="font-bold text-gray-700 text-lg">🔧 Sütun Özellikleri</h4>
-                <div class="space-y-2 text-base text-gray-600">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
-                        <span><strong>Sıra:</strong> Görüntüleme sırası</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
-                        <span><strong>Durum:</strong> Aktif/Pasif</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 bg-blue-500 rounded-full"></span>
-                        <span><strong>Düzenleme:</strong> Sadece admin</span>
-                    </div>
-                </div>
-            </div>
-    </div>
-
-        <div class="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-            <div class="flex items-start gap-3">
-                <span class="text-blue-600 text-lg">💡</span>
-                <div class="text-base text-blue-800">
-                    <strong>İpucu:</strong> Sütun sırasını değiştirerek veri tablosundaki görüntüleme sırasını ayarlayabilirsiniz. 
-                    Aktif sütunlar veri listesi sayfasında görünür, pasif sütunlar gizlenir.
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
-<!-- Modern Success Notification -->
-<div id="successNotification" class="fixed top-4 right-4 bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-4 rounded-xl shadow-2xl transform translate-x-full transition-all duration-300 z-50">
-    <div class="flex items-center gap-3">
-        <span class="text-lg">✅</span>
-        <span class="font-bold text-base" id="notificationMessage">İşlem başarılı!</span>
-        </div>
-    </div>
-{% endblock %}
-
-{% block extra_js %}
 <script>
-function showNotification(message) {
-    const notification = document.getElementById('successNotification');
-    const messageElement = document.getElementById('notificationMessage');
-    
-    messageElement.textContent = message;
-    
-    // Show notification with animation
-    notification.classList.remove('translate-x-full');
-    notification.classList.add('translate-x-0');
-    
-    // Hide after 4 seconds
-    setTimeout(() => {
-        notification.classList.remove('translate-x-0');
-        notification.classList.add('translate-x-full');
-    }, 4000);
-}
-
-// Logo önizleme fonksiyonu
 function previewLogo(input) {
-    const file = input.files[0];
-    if (file) {
-        // Dosya boyutu kontrolü (2MB)
-        if (file.size > 2 * 1024 * 1024) {
-            alert('Logo dosyası 2MB\'dan büyük olamaz!');
-            input.value = '';
-            return;
-        }
-        
-        // Dosya türü kontrolü
-        if (!file.type.startsWith('image/')) {
-            alert('Lütfen geçerli bir resim dosyası seçin!');
-            input.value = '';
-            return;
-        }
-        
+    if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {
             const logoImage = document.getElementById('logoImage');
             logoImage.src = e.target.result;
-            logoImage.alt = 'App Logo';
+            logoImage.style.display = 'block';
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(input.files[0]);
     }
 }
 
@@ -359,15 +228,9 @@ function updateAppSettings() {
     const logoInput = document.getElementById('logoInput');
     
     if (!appName) {
-        alert('Lütfen uygulama adını girin!');
+        alert('Uygulama adı boş olamaz!');
         return;
     }
-    
-    // Show loading state
-    const btn = event.target;
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '⏳ Kaydediliyor...';
-    btn.disabled = true;
     
     // Logo işleme
     let logoData = null;
@@ -391,7 +254,7 @@ function updateAppSettings() {
             updateSidebarSettings(appSettings);
             
             // Form oluştur ve POST isteği gönder
-            submitAppSettings(appName, appDesc);
+            submitAppSettings(appName, appDesc, logoData);
         };
         reader.readAsDataURL(file);
     } else {
@@ -409,11 +272,11 @@ function updateAppSettings() {
         updateSidebarSettings(appSettings);
         
         // Form oluştur ve POST isteği gönder
-        submitAppSettings(appName, appDesc);
+        submitAppSettings(appName, appDesc, null);
     }
 }
 
-function submitAppSettings(appName, appDesc) {
+function submitAppSettings(appName, appDesc, logoData) {
     // Form oluştur ve POST isteği gönder
     const form = document.createElement('form');
     form.method = 'POST';
@@ -441,6 +304,15 @@ function submitAppSettings(appName, appDesc) {
     appDescInput.value = appDesc;
     form.appendChild(appDescInput);
     
+    // Logo data input ekle (eğer varsa)
+    if (logoData) {
+        const logoInput = document.createElement('input');
+        logoInput.type = 'hidden';
+        logoInput.name = 'app_logo';
+        logoInput.value = logoData;
+        form.appendChild(logoInput);
+    }
+    
     // Form'u sayfaya ekle ve gönder
     document.body.appendChild(form);
     form.submit();
@@ -448,30 +320,33 @@ function submitAppSettings(appName, appDesc) {
 
 function updateSidebarSettings(appSettings) {
     // Sidebar'daki app name'i güncelle
-    const sidebarAppName = document.getElementById('sidebarAppName');
+    const sidebarAppName = document.querySelector('h1[style*="font-size: 16px"]');
     if (sidebarAppName) {
         sidebarAppName.textContent = appSettings.app_name;
     }
     
     // Sidebar'daki app description'ı güncelle
-    const sidebarAppDesc = document.getElementById('sidebarAppDesc');
+    const sidebarAppDesc = document.querySelector('p[style*="font-size: 10px"]');
     if (sidebarAppDesc) {
         sidebarAppDesc.textContent = appSettings.app_description;
     }
     
-    // Sidebar'daki app name display'i güncelle
-    const appNameDisplay = document.getElementById('appNameDisplay');
-    if (appNameDisplay) {
-        appNameDisplay.textContent = appSettings.app_name;
-    }
-    
     // Sidebar'daki logo'yu güncelle
     if (appSettings.app_logo) {
-        const sidebarLogo = document.querySelector('.app-logo img');
+        const sidebarLogo = document.querySelector('#logoContainer span');
         if (sidebarLogo) {
-            sidebarLogo.src = appSettings.app_logo;
+            // Logo container'ı güncelle
+            const logoContainer = document.querySelector('#logoContainer');
+            if (logoContainer) {
+                logoContainer.innerHTML = `
+                    <img src="${appSettings.app_logo}" alt="App Logo" 
+                         style="width: 32px; height: 32px; border-radius: 8px; object-fit: cover;">
+                `;
+            }
         }
     }
+    
+    showNotification('Uygulama ayarları güncellendi!', 'success');
 }
 
 function resetAppSettings() {
@@ -483,7 +358,7 @@ function resetAppSettings() {
         
         // Logo önizlemeyi sıfırla
         const logoImage = document.getElementById('logoImage');
-        logoImage.src = 'https://via.placeholder.com/64x64/667eea/ffffff?text=📱';
+        logoImage.src = 'https://via.placeholder.com/40x40/667eea/ffffff?text=📱';
         logoImage.alt = 'App Logo';
         
         // LocalStorage'dan kaldır
@@ -496,8 +371,22 @@ function resetAppSettings() {
             app_logo: null
         });
         
-        showNotification('Uygulama ayarları sıfırlandı!');
+        showNotification('Uygulama ayarları sıfırlandı!', 'success');
     }
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 text-sm font-medium ${
+        type === 'success' ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
 }
 
 // Sayfa yüklendiğinde kaydedilmiş ayarları yükle

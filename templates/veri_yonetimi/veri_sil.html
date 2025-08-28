@@ -1,57 +1,46 @@
 {% extends 'base.html' %}
 
-{% block title %}Veri Sil - Dinamik Veri Yönetim Paneli{% endblock %}
+{% block title %}Veri Sil - {{ app_name|default:"DVP" }}{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
-    <div class="card">
-        <div class="flex flex-col sm:flex-row sm:items-center mb-4 sm:mb-6 space-y-3 sm:space-y-0">
-            <a href="{% url 'veri_yonetimi:veri_listesi' %}" class="text-blue-600 hover:text-blue-800 text-sm sm:text-base order-2 sm:order-1">
-                ← Veri Listesine Dön
-            </a>
-            <h1 class="text-2xl sm:text-3xl font-bold text-red-800 order-1 sm:order-2">🗑️ Veri Sil</h1>
-        </div>
-
-        <div class="bg-red-50 border border-red-200 rounded-lg p-4 sm:p-6 mb-6">
-            <div class="flex items-start space-x-3">
-                <div class="text-red-500 text-2xl sm:text-3xl">⚠️</div>
-                <div>
-                    <h2 class="text-lg sm:text-xl font-semibold text-red-800 mb-2">Dikkat!</h2>
-                    <p class="text-red-700 text-sm sm:text-base">
-                        Bu işlem geri alınamaz. Silmek istediğinizden emin misiniz?
-                    </p>
-                </div>
-            </div>
+<div class="min-h-screen p-4">
+    <div class="max-w-2xl mx-auto">
+        
+        <!-- Basit Başlık -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-red-600 mb-2">🗑️ Veri Sil</h1>
+            <p class="text-gray-600">Bu veriyi kalıcı olarak silmek istediğinizden emin misiniz?</p>
         </div>
 
         {% if ana_veri %}
-            <div class="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mb-6">
-                <h3 class="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">📋 Silinecek Veri Bilgileri</h3>
+            <!-- Veri Bilgileri -->
+            <div class="bg-white border border-gray-200 rounded-lg p-6 mb-6 shadow-sm">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">📋 Silinecek Veri</h3>
                 
-                <div class="space-y-3 sm:space-y-4">
-                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span class="font-medium text-gray-700 text-sm">Veri ID:</span>
-                        <span class="text-gray-900 text-sm">#{{ ana_veri.id }}</span>
+                <div class="space-y-3">
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="font-medium text-gray-600">Veri ID:</span>
+                        <span class="text-gray-800 font-semibold">#{{ ana_veri.id }}</span>
                     </div>
                     
-                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span class="font-medium text-gray-700 text-sm">Oluşturulma Tarihi:</span>
-                        <span class="text-gray-900 text-sm">{{ ana_veri.olusturulma_tarihi|date:"d.m.Y H:i" }}</span>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="font-medium text-gray-600">Oluşturulma Tarihi:</span>
+                        <span class="text-gray-800">{{ ana_veri.olusturulma_tarihi|date:"d.m.Y H:i" }}</span>
                     </div>
                     
-                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span class="font-medium text-gray-700 text-sm">Son Güncelleme:</span>
-                        <span class="text-gray-900 text-sm">{{ ana_veri.guncellenme_tarihi|date:"d.m.Y H:i" }}</span>
+                    <div class="flex justify-between py-2 border-b border-gray-100">
+                        <span class="font-medium text-gray-600">Son Güncelleme:</span>
+                        <span class="text-gray-800">{{ ana_veri.guncellenme_tarihi|date:"d.m.Y H:i" }}</span>
                     </div>
                     
                     {% if aktif_sutunlar %}
                         <div class="pt-2">
-                            <span class="font-medium text-gray-700 text-sm block mb-2">Veri İçeriği:</span>
+                            <span class="font-medium text-gray-600 block mb-2">Veri İçeriği:</span>
                             <div class="space-y-2">
                                 {% for sutun in aktif_sutunlar %}
                                     <div class="flex justify-between items-center py-1">
-                                        <span class="text-gray-600 text-xs sm:text-sm">{{ sutun.ad }}:</span>
-                                        <span class="text-gray-900 text-xs sm:text-sm">
+                                        <span class="text-gray-600 text-sm">{{ sutun.ad }}:</span>
+                                        <span class="text-gray-800 text-sm">
                                             {% for deger in ana_veri.degerler.all %}
                                                 {% if deger.sutun == sutun %}
                                                     {{ deger.deger }}
@@ -69,27 +58,29 @@
             </div>
         {% endif %}
 
-        <form method="post" class="space-y-4 sm:space-y-6">
-            {% csrf_token %}
-            
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 sm:p-6">
-                <div class="flex items-start space-x-3">
-                    <div class="text-yellow-500 text-xl sm:text-2xl">💡</div>
-                    <div>
-                        <h3 class="text-sm sm:text-base font-medium text-yellow-800 mb-2">Son Kontrol</h3>
-                        <p class="text-yellow-700 text-xs sm:text-sm">
-                            Bu veriyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve tüm veri değerleri kalıcı olarak silinecektir.
-                        </p>
-                    </div>
+        <!-- Uyarı Mesajı -->
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div class="flex items-center gap-3">
+                <div class="text-red-500 text-xl">⚠️</div>
+                <div class="text-red-700 text-sm">
+                    <strong>Dikkat:</strong> Bu işlem geri alınamaz! Veri ile ilgili tüm değerler kalıcı olarak silinecektir.
                 </div>
             </div>
+        </div>
 
-            <div class="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4 pt-4 sm:pt-6 border-t">
-                <a href="{% url 'veri_yonetimi:veri_listesi' %}" class="btn-secondary w-full sm:w-auto text-center">
+        <!-- Form -->
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            <!-- Butonlar -->
+            <div class="flex gap-3">
+                <a href="{% url 'veri_yonetimi:veri_listesi' %}" 
+                   class="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-center font-medium">
                     ❌ İptal
                 </a>
-                <button type="submit" class="btn-danger w-full sm:w-auto">
-                    🗑️ Evet, Veriyi Sil
+                <button type="submit" 
+                        class="flex-1 px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium">
+                    🗑️ Veriyi Sil
                 </button>
             </div>
         </form>

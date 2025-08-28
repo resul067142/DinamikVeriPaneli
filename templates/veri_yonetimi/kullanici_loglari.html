@@ -1,0 +1,398 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Kullanıcı İşlem Logları - {{ app_name|default:"DVP" }}{% endblock %}
+
+{% block extra_js %}
+<!-- Excel Export Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+// Excel Export fonksiyonu
+function exportToExcel() {
+    try {
+        const logs = [];
+        
+        // Tablo verilerini al
+        const table = document.querySelector('table');
+        if (table) {
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 6) {
+                    const log = {
+                        'Kullanıcı': cells[0].textContent.trim(),
+                        'İşlemi Yapan': cells[1].textContent.trim(),
+                        'İşlem Tipi': cells[2].textContent.trim(),
+                        'Açıklama': cells[3].textContent.trim(),
+                        'IP Adresi': cells[4].textContent.trim(),
+                        'Tarih': cells[5].textContent.trim()
+                    };
+                    logs.push(log);
+                }
+            });
+        }
+        
+        // Mobil görünümden veri al
+        if (logs.length === 0) {
+            const mobileCards = document.querySelectorAll('.lg\\:hidden .bg-white');
+            mobileCards.forEach(card => {
+                const kullanici = card.querySelector('.text-base.font-semibold')?.textContent.trim() || '';
+                const islemYapan = card.querySelector('.bg-gray-50:nth-child(1) .text-gray-800')?.textContent.trim() || '';
+                const islemTipi = card.querySelector('.bg-gray-50:nth-child(2) .text-gray-800')?.textContent.trim() || '';
+                const aciklama = card.querySelector('.bg-gray-50:nth-child(3) .text-gray-800')?.textContent.trim() || '';
+                const ipAdresi = card.querySelector('.bg-gray-50:nth-child(4) .text-gray-800')?.textContent.trim() || '';
+                const tarih = card.querySelector('.bg-gray-50:nth-child(5) .text-gray-800')?.textContent.trim() || '';
+                
+                const log = {
+                    'Kullanıcı': kullanici,
+                    'İşlemi Yapan': islemYapan,
+                    'İşlem Tipi': islemTipi,
+                    'Açıklama': aciklama,
+                    'IP Adresi': ipAdresi,
+                    'Tarih': tarih
+                };
+                logs.push(log);
+            });
+        }
+        
+        if (logs.length === 0) {
+            alert('Dışa aktarılacak log verisi bulunamadı!');
+            return;
+        }
+        
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(logs);
+        
+        const colWidths = [
+            { wch: 15 }, { wch: 15 }, { wch: 20 }, 
+            { wch: 40 }, { wch: 15 }, { wch: 20 }
+        ];
+        ws['!cols'] = colWidths;
+        
+        XLSX.utils.book_append_sheet(wb, ws, 'Kullanıcı Logları');
+        
+        const fileName = `kullanici_loglari_${new Date().toISOString().split('T')[0]}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+        
+        showNotification('✅ Excel dosyası başarıyla indirildi!', 'success');
+        
+    } catch (error) {
+        console.error('Excel export error:', error);
+        showNotification('❌ Excel export hatası: ' + error.message, 'error');
+    }
+}
+
+// Notification system
+function showNotification(message, type = 'info') {
+    const container = document.getElementById('notificationContainer') || document.body;
+    const notification = document.createElement('div');
+    
+    const colors = {
+        success: 'bg-green-500 text-white',
+        error: 'bg-red-500 text-white',
+        warning: 'bg-yellow-500 text-white',
+        info: 'bg-blue-500 text-white'
+    };
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+    
+    notification.className = `${colors[type]} px-4 py-3 rounded-lg shadow-lg transform translate-x-full transition-all duration-300 max-w-sm fixed top-4 right-4 z-50`;
+    notification.innerHTML = `
+        <div class="flex items-center gap-2">
+            <span class="text-lg">${icons[type]}</span>
+            <span class="font-medium text-sm">${message}</span>
+        </div>
+    `;
+    
+    container.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+        notification.classList.add('translate-x-0');
+    }, 100);
+    
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            if (container.contains(notification)) {
+                container.removeChild(notification);
+            }
+        }, 300);
+    }, 4000);
+}
+
+// Tarih filtre otomatik doldurma
+function setDateRange(days) {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - days);
+    
+    document.getElementById('tarih_baslangic').value = startDate.toISOString().split('T')[0];
+    document.getElementById('tarih_bitis').value = endDate.toISOString().split('T')[0];
+}
+
+// Filtreleri temizle
+function clearFilters() {
+    document.getElementById('search').value = '';
+    document.getElementById('user_filter').value = '';
+    document.getElementById('islem_filter').value = '';
+    document.getElementById('tarih_baslangic').value = '';
+    document.getElementById('tarih_bitis').value = '';
+    document.getElementById('filterForm').submit();
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+    <!-- Page Header -->
+    <div class="card p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200">
+        <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
+            <div>
+                <h1 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    📋 Kullanıcı İşlem Logları
+                </h1>
+                <p class="text-sm text-gray-600 mt-1">
+                    Kullanıcı işlemlerinin detaylı takibi ve raporlama
+                </p>
+            </div>
+            <div class="flex gap-2">
+                <a href="{% url 'veri_yonetimi:kullanici_listesi' %}" class="btn btn-secondary text-sm">
+                    👥 Kullanıcı Listesi
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Filters -->
+    <div class="card p-4">
+        <form id="filterForm" method="get" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <!-- Search -->
+                <div>
+                    <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Genel Arama</label>
+                    <input type="text" id="search" name="search" value="{{ search_query }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                           placeholder="Kullanıcı, açıklama...">
+                </div>
+                
+                <!-- User Filter -->
+                <div>
+                    <label for="user_filter" class="block text-sm font-medium text-gray-700 mb-1">Kullanıcı</label>
+                    <select id="user_filter" name="user_filter" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                        <option value="">Tüm Kullanıcılar</option>
+                        {% for kullanici in kullanicilar %}
+                        <option value="{{ kullanici.username }}" {% if user_filter == kullanici.username %}selected{% endif %}>
+                            {{ kullanici.username }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Operation Type Filter -->
+                <div>
+                    <label for="islem_filter" class="block text-sm font-medium text-gray-700 mb-1">İşlem Tipi</label>
+                    <select id="islem_filter" name="islem_filter" class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                        <option value="">Tüm İşlemler</option>
+                        {% for tip_kod, tip_ad in islem_tipleri %}
+                        <option value="{{ tip_kod }}" {% if islem_filter == tip_kod %}selected{% endif %}>
+                            {{ tip_ad }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <!-- Start Date -->
+                <div>
+                    <label for="tarih_baslangic" class="block text-sm font-medium text-gray-700 mb-1">Başlangıç Tarihi</label>
+                    <input type="date" id="tarih_baslangic" name="tarih_baslangic" value="{{ tarih_baslangic }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                </div>
+                
+                <!-- End Date -->
+                <div>
+                    <label for="tarih_bitis" class="block text-sm font-medium text-gray-700 mb-1">Bitiş Tarihi</label>
+                    <input type="date" id="tarih_bitis" name="tarih_bitis" value="{{ tarih_bitis }}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500">
+                </div>
+            </div>
+            
+            <!-- Filter Buttons -->
+            <div class="flex flex-wrap gap-2">
+                <button type="submit" class="btn btn-primary text-sm">
+                    🔍 Filtrele
+                </button>
+                <button type="button" onclick="clearFilters()" class="btn btn-secondary text-sm">
+                    🗑️ Temizle
+                </button>
+                <button type="button" onclick="setDateRange(7)" class="btn btn-secondary text-sm">
+                    📅 Son 7 Gün
+                </button>
+                <button type="button" onclick="setDateRange(30)" class="btn btn-secondary text-sm">
+                    📅 Son 30 Gün
+                </button>
+                <button type="button" onclick="exportToExcel()" class="btn btn-success text-sm">
+                    📊 Excel Aktar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Logs Table -->
+    {% if loglar %}
+    <div class="card p-4">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                📋 İşlem Logları
+                <span class="text-sm font-normal text-gray-500">({{ loglar.paginator.count }} kayıt)</span>
+            </h3>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="lg:hidden space-y-3">
+            {% for log in loglar %}
+            <div class="bg-white border border-gray-200 rounded-xl p-4 space-y-3 hover:border-blue-300 transition-all duration-200 hover:shadow-md">
+                <!-- Log Header -->
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 {{ log.islem_rengi }} rounded-xl flex items-center justify-center text-2xl font-bold shadow-md">
+                            {{ log.islem_ikonu }}
+                        </div>
+                        <div>
+                            <div class="text-base font-semibold text-gray-800">{{ log.user.username }}</div>
+                            <div class="text-sm text-gray-500">
+                                {% if log.islem_yapan %}{{ log.islem_yapan.username }}{% else %}Sistem{% endif %} tarafından
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Operation Type Badge -->
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ log.islem_rengi }}">
+                        {{ log.get_islem_tipi_display }}
+                    </span>
+                </div>
+                
+                <!-- Log Details Grid -->
+                <div class="grid grid-cols-1 gap-3 text-sm">
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <div class="text-gray-600 font-medium text-xs mb-1">Açıklama</div>
+                        <div class="text-gray-800">{{ log.aciklama }}</div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <div class="text-gray-600 font-medium text-xs mb-1">IP Adresi</div>
+                            <div class="text-gray-800 font-mono text-xs">{{ log.ip_adresi|default:"-" }}</div>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <div class="text-gray-600 font-medium text-xs mb-1">Tarih</div>
+                            <div class="text-gray-800 font-semibold">{{ log.tarih|date:"d.m.Y H:i" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Desktop Table View -->
+        <div class="hidden lg:block">
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kullanıcı</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemi Yapan</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlem Tipi</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Açıklama</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP Adresi</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for log in loglar %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {{ log.user.username }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {% if log.islem_yapan %}{{ log.islem_yapan.username }}{% else %}Sistem{% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ log.islem_rengi }}">
+                                    {{ log.islem_ikonu }} {{ log.get_islem_tipi_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500 max-w-xs">
+                                <div class="truncate" title="{{ log.aciklama }}">{{ log.aciklama }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
+                                {{ log.ip_adresi|default:"-" }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ log.tarih|date:"d.m.Y H:i" }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if loglar.has_other_pages %}
+        <div class="mt-4 flex justify-between items-center">
+            <div class="text-sm text-gray-500">
+                Sayfa {{ loglar.number }} / {{ loglar.paginator.num_pages }}
+                (Toplam {{ loglar.paginator.count }} kayıt)
+            </div>
+            <div class="flex gap-2">
+                {% if loglar.has_previous %}
+                <a href="?page={{ loglar.previous_page_number }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}" 
+                   class="btn btn-secondary text-sm">
+                    ← Önceki
+                </a>
+                {% endif %}
+                
+                {% if loglar.has_next %}
+                <a href="?page={{ loglar.next_page_number }}{% if request.GET %}&{{ request.GET.urlencode }}{% endif %}" 
+                   class="btn btn-secondary text-sm">
+                    Sonraki →
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <!-- No Logs Available -->
+    <div class="bg-white rounded-lg shadow-md border border-gray-100 p-8 text-center">
+        <div class="text-6xl mb-4">📋</div>
+        <h3 class="text-xl font-semibold text-gray-800 mb-2">İşlem Logu Bulunamadı</h3>
+        <p class="text-gray-600 mb-6">
+            Henüz hiç işlem logu bulunmuyor veya filtrelediğiniz kriterlere uygun sonuç yok.
+        </p>
+        <div class="flex flex-wrap justify-center gap-3">
+            <button onclick="clearFilters()" class="btn btn-primary">
+                🗑️ Filtreleri Temizle
+            </button>
+            <a href="{% url 'veri_yonetimi:kullanici_listesi' %}" 
+               class="btn btn-secondary">
+                👥 Kullanıcı Listesi
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Notification Container -->
+<div id="notificationContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+{% endblock %}

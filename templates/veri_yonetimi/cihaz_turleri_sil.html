@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Cihaz Türü Sil - {{ app_name|default:"DVP" }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="text-center">
+        <h1 class="text-2xl font-bold text-gray-800">🗑️ Cihaz Türü Sil</h1>
+        <p class="text-gray-600 mt-1">Bu cihaz türünü silmek istediğinizden emin misiniz?</p>
+    </div>
+
+    <!-- Warning Card -->
+    <div class="card bg-red-50 border-red-200">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <span class="text-red-600 text-xl">⚠️</span>
+            </div>
+            <div>
+                <h3 class="text-lg font-medium text-red-800">Dikkat!</h3>
+                <p class="text-red-700 text-sm">Bu işlem geri alınamaz ve tüm veriler kalıcı olarak silinir.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cihaz Türü Bilgileri -->
+    <div class="card">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">📋 Silinecek Cihaz Türü</h3>
+        <div class="space-y-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                    <span class="text-2xl">{{ cihaz_turu.icon }}</span>
+                </div>
+                <div>
+                    <h4 class="text-lg font-medium text-gray-900">{{ cihaz_turu.ad }}</h4>
+                    <p class="text-gray-600 text-sm">{{ cihaz_turu.aciklama }}</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <span class="font-medium text-gray-700">Kategori:</span>
+                    <span class="text-gray-600 ml-2">{{ cihaz_turu.kategori }}</span>
+                </div>
+                <div>
+                    <span class="font-medium text-gray-700">Durum:</span>
+                    <span class="text-gray-600 ml-2">{{ cihaz_turu.durum }}</span>
+                </div>
+                <div>
+                    <span class="font-medium text-gray-700">Kurulum:</span>
+                    <span class="text-gray-600 ml-2">{{ cihaz_turu.kurulum_sayisi }}</span>
+                </div>
+                <div>
+                    <span class="font-medium text-gray-700">Hedef:</span>
+                    <span class="text-gray-600 ml-2">{{ cihaz_turu.hedef_sayisi }}</span>
+                </div>
+                <div>
+                    <span class="font-medium text-gray-700">Tamamlanma:</span>
+                    <span class="text-gray-600 ml-2">%{{ cihaz_turu.tamamlanma_yuzdesi }}</span>
+                </div>
+                <div>
+                    <span class="font-medium text-gray-700">ID:</span>
+                    <span class="text-gray-600 ml-2">{{ cihaz_turu.id }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-center space-x-4">
+        <a href="{% url 'veri_yonetimi:cihaz_turleri' %}" class="btn btn-secondary">
+            ❌ İptal
+        </a>
+        <form method="post" class="inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Bu cihaz türünü silmek istediğinizden emin misiniz?')">
+                🗑️ Sil
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

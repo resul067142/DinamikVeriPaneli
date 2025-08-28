@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Cihaz Türü Düzenle - {{ app_name|default:"DVP" }}{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">✏️ Cihaz Türü Düzenle</h1>
+            <p class="text-gray-600 mt-1">{{ cihaz_turu.ad }} cihaz türünü düzenleyin</p>
+        </div>
+        <a href="{% url 'veri_yonetimi:cihaz_turleri' %}" class="btn btn-secondary">
+            ← Geri Dön
+        </a>
+    </div>
+
+    <!-- Edit Form -->
+    <div class="card">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Cihaz Adı -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Cihaz Adı
+                    </label>
+                    <input type="text" name="ad" value="{{ cihaz_turu.ad }}" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+
+                <!-- Kategori -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Kategori
+                    </label>
+                    <select name="kategori" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        {% for kategori in kategoriler %}
+                            <option value="{{ kategori }}" {% if kategori == cihaz_turu.kategori %}selected{% endif %}>
+                                {{ kategori }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Durum -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Durum
+                    </label>
+                    <select name="durum" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        {% for durum in durumlar %}
+                            <option value="{{ durum }}" {% if durum == cihaz_turu.durum %}selected{% endif %}>
+                                {{ durum }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- İkon -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        İkon
+                    </label>
+                    <select name="icon" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        {% for icon in icons %}
+                            <option value="{{ icon }}" {% if icon == cihaz_turu.icon %}selected{% endif %}>
+                                {{ icon }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Kurulum Sayısı -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Kurulum Sayısı
+                    </label>
+                    <input type="number" name="kurulum_sayisi" value="{{ cihaz_turu.kurulum_sayisi }}" min="0" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+
+                <!-- Hedef Sayısı -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Hedef Sayısı
+                    </label>
+                    <input type="number" name="hedef_sayisi" value="{{ cihaz_turu.hedef_sayisi }}" min="0" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+            </div>
+
+            <!-- Açıklama -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Açıklama
+                </label>
+                <textarea name="aciklama" rows="3" required
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ cihaz_turu.aciklama }}</textarea>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <a href="{% url 'veri_yonetimi:cihaz_turleri' %}" class="btn btn-secondary">
+                    ❌ İptal
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    💾 Güncelle
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Current Info -->
+    <div class="card">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">📋 Mevcut Bilgiler</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+                <span class="font-medium text-gray-700">Tamamlanma:</span>
+                <span class="text-gray-600 ml-2">%{{ cihaz_turu.tamamlanma_yuzdesi }}</span>
+            </div>
+            <div>
+                <span class="font-medium text-gray-700">Renk:</span>
+                <span class="text-gray-600 ml-2">{{ cihaz_turu.renk }}</span>
+            </div>
+            <div>
+                <span class="font-medium text-gray-700">ID:</span>
+                <span class="text-gray-600 ml-2">{{ cihaz_turu.id }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

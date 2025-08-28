@@ -3,6 +3,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from .views import log_user_activity
 
 def user_register(request):
     """
@@ -44,6 +45,16 @@ def user_login(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
+                
+                # Giriş logunu kaydet
+                log_user_activity(
+                    user=user,
+                    islem_yapan=user,
+                    islem_tipi='giris_yapildi',
+                    aciklama=f'{user.username} kullanıcısı sisteme giriş yaptı',
+                    request=request
+                )
+                
                 messages.success(request, f'Hos geldiniz, {username}!')
                 return redirect('veri_yonetimi:veri_listesi')
         else:
@@ -55,13 +66,22 @@ def user_login(request):
         'form': form,
         'is_register': False,
     }
-    return render(request, 'veri_yonetimi/auth_form.html', context)
+    return render(request, 'veri_yonetimi/login.html', context)
 
 @login_required
 def user_logout(request):
     """
     Kullanıcı çıkış
     """
+    # Çıkış logunu kaydet (logout'tan önce)
+    log_user_activity(
+        user=request.user,
+        islem_yapan=request.user,
+        islem_tipi='cikis_yapildi',
+        aciklama=f'{request.user.username} kullanıcısı sistemden çıkış yaptı',
+        request=request
+    )
+    
     logout(request)
     messages.info(request, 'Başarıyla çıkış yapıldı.')
     return redirect('veri_yonetimi:user_login')
