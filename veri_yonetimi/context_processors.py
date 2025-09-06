@@ -42,7 +42,7 @@ def statistics_data(request):
         turkiye_toplam_arizali = turkiye_veriler.aggregate(toplam=Sum('arizali_cihaz_sayisi'))['toplam'] or 0
         
         if turkiye_toplam_kurulacak > 0:
-            turkiye_tamamlanma_yuzdesi = round((turkiye_toplam_kurulan / turkiye_toplam_kurulacak) * 100, 1)
+            turkiye_tamamlanma_yuzdesi = round((turkiye_toplam_kurulan / turkiye_toplam_kurulacak) * 100, 3)
         else:
             turkiye_tamamlanma_yuzdesi = 0
     except Exception:

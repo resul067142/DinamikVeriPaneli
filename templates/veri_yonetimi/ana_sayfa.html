@@ -22,6 +22,9 @@
                     <div class="flex items-center justify-center space-x-2 text-xs text-gray-500">
                         <span>📧 yonetici@dvp.com</span>
                     </div>
+                    <div class="flex items-center justify-center space-x-2 text-xs text-gray-500 mt-1">
+                        <span>📞 +90 312 456 78 90 / 102</span>
+                    </div>
                     {% if user.is_superuser %}
                     <div class="mt-3">
                         <button onclick="editTeamMember('yonetici')" class="px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs rounded-full transition-colors">
@@ -42,6 +45,9 @@
                     <p class="text-xs text-gray-600 mb-2">Geliştirme & Bakım</p>
                     <div class="flex items-center justify-center space-x-2 text-xs text-gray-500">
                         <span>📧 yazilim@dvp.com</span>
+                    </div>
+                    <div class="flex items-center justify-center space-x-2 text-xs text-gray-500 mt-1">
+                        <span>📞 +90 312 456 78 90 / 103</span>
                     </div>
                     {% if user.is_superuser %}
                     <div class="mt-3">
@@ -64,6 +70,9 @@
                     <div class="flex items-center justify-center space-x-2 text-xs text-gray-500">
                         <span>📧 destek@dvp.com</span>
                     </div>
+                    <div class="flex items-center justify-center space-x-2 text-xs text-gray-500 mt-1">
+                        <span>📞 +90 312 456 78 90 / 104</span>
+                    </div>
                     {% if user.is_superuser %}
                     <div class="mt-3">
                         <button onclick="editTeamMember('destek')" class="px-2 py-1 bg-orange-100 hover:bg-orange-200 text-orange-700 text-xs rounded-full transition-colors">
@@ -85,6 +94,9 @@
                     <div class="flex items-center justify-center space-x-2 text-xs text-gray-500">
                         <span>📧 ekp@dvp.com</span>
                     </div>
+                    <div class="flex items-center justify-center space-x-2 text-xs text-gray-500 mt-1">
+                        <span>📞 +90 312 456 78 90 / 105</span>
+                    </div>
                     {% if user.is_superuser %}
                     <div class="mt-3">
                         <button onclick="editTeamMember('ekp')" class="px-2 py-1 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs rounded-full transition-colors">
@@ -101,6 +113,42 @@
     {% if turkiye_toplam_kurulacak or turkiye_toplam_kurulan %}
     <div class="card p-4">
         <h3 class="text-lg font-semibold text-gray-800 mb-3 text-center">🇹🇷 Türkiye Geneli Cihaz Durumu</h3>
+        
+        <!-- Proje Geri Sayımı -->
+        <div class="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg p-2 mb-3 border border-orange-200">
+            <div class="flex items-center justify-between mb-2">
+                <h4 class="text-xs font-semibold text-orange-800">⏰ Proje Hedefi</h4>
+                <button onclick="editTargetDate()" class="text-xs bg-orange-100 hover:bg-orange-200 text-orange-700 px-1 py-0.5 rounded transition-colors">
+                    ✏️
+                </button>
+            </div>
+            <div id="countdown-timer" class="grid grid-cols-5 gap-1 text-center mb-1">
+                <div class="bg-white rounded p-1 border border-orange-200">
+                    <div id="countdown-months" class="text-sm font-bold text-orange-600">0</div>
+                    <div class="text-xs text-orange-800">Ay</div>
+                </div>
+                <div class="bg-white rounded p-1 border border-orange-200">
+                    <div id="countdown-days" class="text-sm font-bold text-orange-600">0</div>
+                    <div class="text-xs text-orange-800">Gün</div>
+                </div>
+                <div class="bg-white rounded p-1 border border-orange-200">
+                    <div id="countdown-hours" class="text-sm font-bold text-orange-600">0</div>
+                    <div class="text-xs text-orange-800">Saat</div>
+                </div>
+                <div class="bg-white rounded p-1 border border-orange-200">
+                    <div id="countdown-minutes" class="text-sm font-bold text-orange-600">0</div>
+                    <div class="text-xs text-orange-800">Dk</div>
+                </div>
+                <div class="bg-white rounded p-1 border border-orange-200">
+                    <div id="countdown-seconds" class="text-sm font-bold text-orange-600">0</div>
+                    <div class="text-xs text-orange-800">Sn</div>
+                </div>
+            </div>
+            <div id="target-date-display" class="text-xs text-orange-600 text-center">
+                <span id="target-date-text">Henüz belirlenmedi</span>
+            </div>
+        </div>
+        
                  <!-- Ana İstatistikler -->
          <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-center mb-4">
              <div class="bg-blue-50 rounded p-2 border border-blue-200">
@@ -124,7 +172,7 @@
              </div>
              
              <div class="bg-purple-50 rounded p-2 border border-purple-200">
-                 <div class="text-lg font-bold text-purple-600">%{{ turkiye_tamamlanma_yuzdesi|default:"0" }}</div>
+                 <div class="text-lg font-bold text-purple-600">%{{ turkiye_tamamlanma_yuzdesi|floatformat:3 }}</div>
                  <div class="text-xs text-purple-800">📊 Tamamlanma</div>
              </div>
          </div>
@@ -145,7 +193,7 @@
                  <div class="mb-3">
                      <div class="flex justify-between text-xs text-gray-600 mb-1">
                          <span>İlerleme</span>
-                         <span class="font-medium">%{{ istatistik.tamamlanma_yuzdesi|default:"0" }}</span>
+                         <span class="font-medium">%{{ istatistik.tamamlanma_yuzdesi|floatformat:3 }}</span>
                      </div>
                      <div class="w-full bg-white border border-gray-200 rounded-full h-2 relative overflow-hidden">
                          <div class="h-2 rounded-full transition-all duration-500 ease-out" 
@@ -194,7 +242,8 @@ function editTeamMember(role) {
             title: 'Genel Koordinatör',
             name: 'Resul AKTAŞ',
             email: 'yonetici@dvp.com',
-            phone: '+90 555 123 4567',
+            phone: '+90 312 456 78 90',
+            extension: '102',
             department: 'Genel Koordinasyon',
             avatar: '👔',
             photo: null
@@ -203,7 +252,8 @@ function editTeamMember(role) {
             title: 'Yazılım Geliştirici',
             name: 'Mehmet Demir',
             email: 'yazilim@dvp.com',
-            phone: '+90 555 234 5678',
+            phone: '+90 312 456 78 90',
+            extension: '103',
             department: 'Geliştirme & Bakım',
             avatar: '💻',
             photo: null
@@ -212,7 +262,8 @@ function editTeamMember(role) {
             title: 'Teknik Destek',
             name: 'Fatma Kaya',
             email: 'destek@dvp.com',
-            phone: '+90 555 345 6789',
+            phone: '+90 312 456 78 90',
+            extension: '104',
             department: 'Sistem & Cihaz',
             avatar: '🔧',
             photo: null
@@ -221,7 +272,8 @@ function editTeamMember(role) {
             title: 'Proje Yöneticisi',
             name: 'Ali Özkan',
             email: 'ekp@dvp.com',
-            phone: '+90 555 456 7890',
+            phone: '+90 312 456 78 90',
+            extension: '105',
             department: 'Proje Yönetimi',
             avatar: '📋',
             photo: null
@@ -273,6 +325,12 @@ function editTeamMember(role) {
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">📱 Telefon</label>
                     <input type="tel" id="phoneInput" value="${member.phone}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                </div>
+                
+                <!-- Dahili -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">📞 Dahili</label>
+                    <input type="text" id="extensionInput" value="${member.extension || ''}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="Örnek: 102">
                 </div>
                 
                 <!-- Departman -->
@@ -330,6 +388,7 @@ function saveTeamMember(role) {
     const name = document.getElementById('nameInput').value.trim();
     const email = document.getElementById('emailInput').value.trim();
     const phone = document.getElementById('phoneInput').value.trim();
+    const extension = document.getElementById('extensionInput').value.trim();
     const department = document.getElementById('departmentInput').value.trim();
     const photoInput = document.getElementById('photoInput');
     
@@ -357,6 +416,7 @@ function saveTeamMember(role) {
                 name: name,
                 email: email,
                 phone: phone,
+                extension: extension,
                 department: department,
                 photo: photoData,
                 updatedAt: new Date().toISOString()
@@ -379,6 +439,7 @@ function saveTeamMember(role) {
             name: name,
             email: email,
             phone: phone,
+            extension: extension,
             department: department,
             photo: null,
             updatedAt: new Date().toISOString()
@@ -426,6 +487,17 @@ function updateTeamMemberCard(role, memberData) {
         // E-posta güncelle
         const emailElement = card.querySelector('.text-xs.text-gray-500 span');
         if (emailElement) emailElement.textContent = `📧 ${memberData.email}`;
+        
+        // Telefon dahili güncelle
+        const phoneElements = card.querySelectorAll('.text-xs.text-gray-500');
+        if (phoneElements.length > 1) {
+            const phoneElement = phoneElements[1].querySelector('span');
+            if (phoneElement && memberData.extension) {
+                phoneElement.textContent = `📞 ${memberData.phone} / ${memberData.extension}`;
+            } else if (phoneElement) {
+                phoneElement.textContent = `📞 ${memberData.phone}`;
+            }
+        }
     }
 }
 
@@ -444,6 +516,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+    
+    // Geri sayım timer'ı başlat
+    initCountdownTimer();
 });
 
 // Bildirim gösterme fonksiyonu
@@ -480,6 +555,190 @@ function showNotification(message, type = 'info') {
             notification.remove();
         }, 300);
     }, 3000);
+}
+
+// ======== GERİ SAYIM TİMER FONKSİYONLARI ========
+
+// Geri sayım timer'ını başlat
+function initCountdownTimer() {
+    // Kaydedilmiş hedef tarihini yükle
+    const savedTargetDate = localStorage.getItem('projectTargetDate');
+    if (savedTargetDate) {
+        updateTargetDateDisplay(savedTargetDate);
+        startCountdown(savedTargetDate);
+    } else {
+        // Varsayılan hedef tarih: 6 ay sonra
+        const defaultDate = new Date();
+        defaultDate.setMonth(defaultDate.getMonth() + 6);
+        const defaultDateString = defaultDate.toISOString().split('T')[0];
+        
+        localStorage.setItem('projectTargetDate', defaultDateString);
+        updateTargetDateDisplay(defaultDateString);
+        startCountdown(defaultDateString);
+    }
+}
+
+// Hedef tarih düzenleme modalı
+function editTargetDate() {
+    const currentTargetDate = localStorage.getItem('projectTargetDate') || '';
+    
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-800">🎯 Proje Hedef Tarihini Belirle</h3>
+                <button onclick="this.closest('.fixed').remove()" class="text-gray-400 hover:text-gray-600 text-xl">
+                    ✕
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">📅 Hedef Tarih</label>
+                    <input type="date" id="targetDateInput" value="${currentTargetDate}" 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                           min="${new Date().toISOString().split('T')[0]}">
+                    <p class="text-xs text-gray-500 mt-1">Projenin tamamlanması hedeflenen tarih</p>
+                </div>
+                
+                <div class="bg-blue-50 p-3 rounded-lg">
+                    <p class="text-sm text-blue-700">
+                        📝 <strong>Not:</strong> Bu tarih geri sayım timerında kullanılacak ve yerel olarak saklanacaktır.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 mt-6">
+                <button onclick="saveTargetDate()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors">
+                    💾 Kaydet
+                </button>
+                <button onclick="this.closest('.fixed').remove()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg font-medium transition-colors">
+                    ❌ İptal
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// Hedef tarihi kaydet
+function saveTargetDate() {
+    const targetDateInput = document.getElementById('targetDateInput');
+    const targetDate = targetDateInput.value;
+    
+    if (!targetDate) {
+        showNotification('Lütfen bir tarih seçin!', 'error');
+        return;
+    }
+    
+    const selectedDate = new Date(targetDate);
+    const today = new Date();
+    
+    if (selectedDate <= today) {
+        showNotification('Hedef tarih bugünden sonra olmalıdır!', 'error');
+        return;
+    }
+    
+    // LocalStorage'a kaydet
+    localStorage.setItem('projectTargetDate', targetDate);
+    
+    // Görüntüyü güncelle
+    updateTargetDateDisplay(targetDate);
+    
+    // Geri sayımı yeniden başlat
+    startCountdown(targetDate);
+    
+    // Modal'ı kapat
+    document.querySelector('.fixed').remove();
+    
+    showNotification('Hedef tarih kaydedildi!', 'success');
+}
+
+// Hedef tarih görüntüsünü güncelle
+function updateTargetDateDisplay(targetDate) {
+    const targetDateElement = document.getElementById('target-date-text');
+    if (targetDateElement) {
+        const date = new Date(targetDate);
+        const options = { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            weekday: 'long'
+        };
+        targetDateElement.textContent = date.toLocaleDateString('tr-TR', options);
+    }
+}
+
+// Geri sayımı başlat
+function startCountdown(targetDate) {
+    // Mevcut interval'ı temizle
+    if (window.countdownInterval) {
+        clearInterval(window.countdownInterval);
+    }
+    
+    function updateCountdown() {
+        const now = new Date().getTime();
+        const target = new Date(targetDate).getTime();
+        const difference = target - now;
+        
+        if (difference > 0) {
+            // Zaman birimlerini hesapla
+            const months = Math.floor(difference / (1000 * 60 * 60 * 24 * 30.44)); // Ortalama ay
+            const days = Math.floor((difference % (1000 * 60 * 60 * 24 * 30.44)) / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+            
+            // DOM elementlerini güncelle
+            const monthsEl = document.getElementById('countdown-months');
+            const daysEl = document.getElementById('countdown-days');
+            const hoursEl = document.getElementById('countdown-hours');
+            const minutesEl = document.getElementById('countdown-minutes');
+            const secondsEl = document.getElementById('countdown-seconds');
+            
+            if (monthsEl) monthsEl.textContent = months;
+            if (daysEl) daysEl.textContent = days;
+            if (hoursEl) hoursEl.textContent = hours;
+            if (minutesEl) minutesEl.textContent = minutes;
+            if (secondsEl) secondsEl.textContent = seconds;
+            
+            // Renk değiştirme (süre azaldıkça kırmızıya dönür)
+            const totalDays = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const timerElements = document.querySelectorAll('#countdown-timer .text-sm');
+            
+            timerElements.forEach(el => {
+                el.className = 'text-sm font-bold ' + 
+                    (totalDays < 30 ? 'text-red-600' : 
+                     totalDays < 90 ? 'text-orange-600' : 
+                     'text-orange-600');
+            });
+            
+        } else {
+            // Süre doldu
+            const elements = ['countdown-months', 'countdown-days', 'countdown-hours', 'countdown-minutes', 'countdown-seconds'];
+            elements.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.textContent = '0';
+                    el.className = 'text-sm font-bold text-red-600 animate-pulse';
+                }
+            });
+            
+            // Süre doldu bildirimini göster (sadece bir kez)
+            if (!window.timeUpNotified) {
+                showNotification('⏰ Proje hedef tarihi geldi!', 'warning');
+                window.timeUpNotified = true;
+            }
+        }
+    }
+    
+    // İlk güncelleme
+    updateCountdown();
+    
+    // Her saniye güncelle
+    window.countdownInterval = setInterval(updateCountdown, 1000);
 }
 </script>
 {% endblock %}

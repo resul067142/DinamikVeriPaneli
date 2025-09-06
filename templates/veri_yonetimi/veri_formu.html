@@ -40,53 +40,47 @@
                         </div>
                     {% endif %}
 
-                    <!-- Form Fields Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {% for sutun in aktif_sutunlar %}
-                            <div class="{% if sutun.ad == 'Plaka' or sutun.ad == 'İl Adı' %}md:col-span-2{% endif %}">
+                    <!-- Ana Form Alanları -->
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {% for sutun in aktif_sutunlar %}
+                            <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    {% if sutun.ad == 'Plaka' %}
-                                        🚗 {{ sutun.ad }}
-                                        <span class="text-red-500 ml-1">*</span>
-                                    {% elif sutun.ad == 'İl Adı' %}
-                                        🏙️ {{ sutun.ad }}
-                                        <span class="text-red-500 ml-1">*</span>
-                                    {% elif 'Cihaz' in sutun.ad %}
-                                        📱 {{ sutun.ad }}
-                                    {% elif 'Tarih' in sutun.ad %}
-                                        📅 {{ sutun.ad }}
-                                    {% elif 'Durum' in sutun.ad %}
-                                        🔍 {{ sutun.ad }}
-                                    {% else %}
-                                        📝 {{ sutun.ad }}
-                                    {% endif %}
+                                    {{ sutun.ad }}
+                                    <span class="text-gray-500 text-xs ml-2">(opsiyonel)</span>
                                 </label>
                                 
-                                <!-- Input Fields -->
-                                {% if sutun.ad == 'Plaka' %}
+                                {% if sutun.ad == 'İl Adı' %}
                                     <input type="text" 
                                            name="sutun_{{ sutun.id }}" 
                                            id="id_sutun_{{ sutun.id }}"
                                            value=""
-                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                           placeholder="Plaka numarası girin (sınır yok)"
-                                           title="Plaka numarası girin">
-                                    
-                                {% elif sutun.ad == 'İl Adı' %}
-                                    <input type="text" 
-                                           name="sutun_{{ sutun.id }}" 
-                                           id="id_sutun_{{ sutun.id }}"
-                                           value=""
-                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                           placeholder="Adana, Ankara, İstanbul..."
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                           placeholder="İzmir, Ankara, İstanbul..."
                                            maxlength="50">
+                                    <div class="text-xs text-gray-600 mt-1">
+                                        Şehir adını yazın
+                                    </div>
+                                    
+                                {% elif sutun.ad == 'Plaka' %}
+                                    <input type="text" 
+                                           name="sutun_{{ sutun.id }}" 
+                                           id="id_sutun_{{ sutun.id }}"
+                                           value=""
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                           placeholder="01, 06, 34, 35..."
+                                           pattern="[0-9]{1,2}"
+                                           title="Plaka kodu: 01-81 arası rakam">
+                                    <div class="text-xs text-gray-600 mt-1">
+                                        Sadece rakam: 01-81 arası
+                                    </div>
                                     
                                 {% elif 'Cihaz' in sutun.ad %}
                                     <input type="number" 
                                            name="sutun_{{ sutun.id }}" 
                                            id="id_sutun_{{ sutun.id }}"
                                            value=""
-                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                            placeholder="0, 5, 25, 100..."
                                            min="0"
                                            step="1">
@@ -96,7 +90,7 @@
                                            name="sutun_{{ sutun.id }}" 
                                            id="id_sutun_{{ sutun.id }}"
                                            value=""
-                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-100"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-gray-50"
                                            placeholder="Otomatik hesaplanacak"
                                            min="0"
                                            max="100"
@@ -104,7 +98,7 @@
                                            readonly
                                            title="Bu alan otomatik hesaplanır">
                                     <div class="text-xs text-gray-500 mt-1">
-                                        💡 Kurulan / Kurulacak oranına göre otomatik hesaplanır
+                                        Otomatik hesaplanır
                                     </div>
                                     
                                 {% elif 'Tarih' in sutun.ad %}
@@ -112,18 +106,19 @@
                                            name="sutun_{{ sutun.id }}" 
                                            id="id_sutun_{{ sutun.id }}"
                                            value=""
-                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                                     
                                 {% else %}
                                     <input type="text" 
                                            name="sutun_{{ sutun.id }}" 
                                            id="id_sutun_{{ sutun.id }}"
                                            value=""
-                                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                            placeholder="{{ sutun.ad }} değerini girin">
                                 {% endif %}
                             </div>
-                        {% endfor %}
+                            {% endfor %}
+                        </div>
                     </div>
 
                     <!-- Action Buttons -->
@@ -164,206 +159,306 @@
 
 <script>
 function generateFakeData() {
-    console.log('🎲 Test verisi oluşturuluyor...');
+    console.log('Test verisi oluşturuluyor...');
     
     try {
-        // Plaka (sutun_23)
-        const plakaInput = document.querySelector('input[name="sutun_23"]');
-        if (plakaInput) {
-            const randomPlaka = Math.floor(Math.random() * 999) + 1;
-            plakaInput.value = randomPlaka.toString();
-            console.log('🚗 Plaka set edildi:', plakaInput.value);
+        // Tüm input alanlarını kontrol et
+        const allInputs = document.querySelectorAll('input[name^="sutun_"]');
+        console.log('Toplam input alanı sayısı:', allInputs.length);
+        
+        if (allInputs.length === 0) {
+            throw new Error('Form alanları bulunamadı');
         }
         
-        // İl Adı (sutun_24)
-        const iller = ['Adana', 'Ankara', 'İstanbul', 'İzmir', 'Bursa', 'Antalya'];
-        const ilInput = document.querySelector('input[name="sutun_24"]');
+        let fieldsSet = 0;
+        
+        // İl Adı (sutun_25) - Sıra 1
+        const ilInput = document.querySelector('input[name="sutun_25"]');
         if (ilInput) {
+            const iller = ['Adana', 'Adıyaman', 'Afyonkarahisar', 'Ağrı', 'Amasya', 'Ankara', 'Antalya', 'Artvin', 'Aydın', 'Balıkesir', 'Bilecik', 'Bingöl', 'Bitlis', 'Bolu', 'Burdur', 'Bursa', 'Çanakkale', 'Çankırı', 'Çorum', 'Denizli', 'Diyarbakır', 'Edirne', 'Elazığ', 'Erzincan', 'Erzurum', 'Eskişehir', 'Gaziantep', 'Giresun', 'Gümüşhane', 'Hakkâri', 'Hatay', 'Isparta', 'Mersin', 'İstanbul', 'İzmir', 'Kars', 'Kastamonu', 'Kayseri', 'Kırklareli', 'Kırşehir', 'Kocaeli', 'Konya', 'Kütahya', 'Malatya', 'Manisa', 'Kahramanmaraş', 'Mardin', 'Muğla', 'Muş', 'Nevşehir', 'Niğde', 'Ordu', 'Rize', 'Sakarya', 'Samsun', 'Siirt', 'Sinop', 'Sivas', 'Tekirdağ', 'Tokat', 'Trabzon', 'Tunceli', 'Şanlıurfa', 'Uşak', 'Van', 'Yozgat', 'Zonguldak', 'Aksaray', 'Bayburt', 'Karaman', 'Kırıkkale', 'Batman', 'Şırnak', 'Bartın', 'Ardahan', 'Iğdır', 'Yalova', 'Karabük', 'Kilis', 'Osmaniye', 'Düzce'];
             const randomIl = iller[Math.floor(Math.random() * iller.length)];
             ilInput.value = randomIl;
-            console.log('🏙️ İl adı set edildi:', ilInput.value);
+            console.log('✅ İl adı set edildi:', randomIl);
+            fieldsSet++;
+        } else {
+            console.log('⚠️ İl Adı alanı bulunamadı');
         }
         
-        // Kurulacak Cihaz Sayısı (sutun_25)
-        const randomKurulacak = Math.floor(Math.random() * 100) + 10;
-        const kurulacakInput = document.querySelector('input[name="sutun_25"]');
+        // Plaka (sutun_24) - Sıra 2
+        const plakaInput = document.querySelector('input[name="sutun_24"]');
+        if (plakaInput) {
+            const randomPlaka = Math.floor(Math.random() * 81) + 1;
+            const formattedPlaka = randomPlaka.toString().padStart(2, '0');
+            plakaInput.value = formattedPlaka;
+            console.log('✅ Plaka set edildi:', formattedPlaka);
+            fieldsSet++;
+        } else {
+            console.log('⚠️ Plaka alanı bulunamadı');
+        }
+        
+        // Kurulacak Cihaz Sayısı (sutun_26) - Sıra 3
+        const kurulacakInput = document.querySelector('input[name="sutun_26"]');
+        let randomKurulacak = 50;
         if (kurulacakInput) {
+            randomKurulacak = Math.floor(Math.random() * 500) + 50; // 50-550 arası
             kurulacakInput.value = randomKurulacak;
-            console.log('📱 Kurulacak cihaz sayısı set edildi:', randomKurulacak);
+            console.log('✅ Kurulacak cihaz sayısı set edildi:', randomKurulacak);
+            fieldsSet++;
+        } else {
+            console.log('⚠️ Kurulacak cihaz alanı bulunamadı');
         }
         
-        // Kurulan Cihaz Sayısı (sutun_26)
-        const randomKurulan = Math.floor(Math.random() * randomKurulacak);
-        const kurulanInput = document.querySelector('input[name="sutun_26"]');
+        // Kurulan Cihaz Sayısı (sutun_27) - Sıra 4
+        const kurulanInput = document.querySelector('input[name="sutun_27"]');
+        let randomKurulan = 0;
         if (kurulanInput) {
+            randomKurulan = Math.floor(Math.random() * (randomKurulacak * 0.9)); // %90'ına kadar
             kurulanInput.value = randomKurulan;
-            console.log('📱 Kurulan cihaz sayısı set edildi:', randomKurulan);
+            console.log('✅ Kurulan cihaz sayısı set edildi:', randomKurulan);
+            fieldsSet++;
+        } else {
+            console.log('⚠️ Kurulan cihaz alanı bulunamadı');
         }
         
-        // Arızalı Cihaz Sayısı (sutun_27)
-        const randomArizali = Math.floor(Math.random() * 20);
-        const arizaliInput = document.querySelector('input[name="sutun_27"]');
+        // Arızalı Cihaz Sayısı (sutun_28) - Sıra 5
+        const arizaliInput = document.querySelector('input[name="sutun_28"]');
         if (arizaliInput) {
+            const maxArizali = Math.floor(randomKurulan * 0.1); // Kurulanların %10'u kadar
+            const randomArizali = Math.floor(Math.random() * (maxArizali + 1));
             arizaliInput.value = randomArizali;
-            console.log('📱 Arızalı cihaz sayısı set edildi:', randomArizali);
+            console.log('✅ Arızalı cihaz sayısı set edildi:', randomArizali);
+            fieldsSet++;
+        } else {
+            console.log('⚠️ Arızalı cihaz alanı bulunamadı');
         }
         
-        // Tamamlanma Durumu (sutun_28) - readonly olduğu için otomatik hesaplanır
-        const tamamlanmaInput = document.querySelector('input[name="sutun_28"]');
-        if (tamamlanmaInput) {
-            const tamamlanmaYuzdesi = Math.round((randomKurulan / randomKurulacak) * 100);
-            tamamlanmaInput.value = tamamlanmaYuzdesi;
-            console.log('🔍 Tamamlanma yüzdesi set edildi:', tamamlanmaYuzdesi);
-        }
+        // Tamamlanma hesaplama
+        calculateCompletion();
         
-        // Diğer dinamik sütunlar (sutun_32, sutun_33, sutun_35)
-        const dinamikInputs = ['sutun_32', 'sutun_33', 'sutun_35'];
-        dinamikInputs.forEach(inputName => {
-            const input = document.querySelector(`input[name="${inputName}"]`);
-            if (input) {
-                const randomText = `Test_${Math.floor(Math.random() * 1000)}`;
-                input.value = randomText;
-                console.log(`📝 ${inputName} değeri set edildi: ${randomText}`);
-            }
-        });
+        // Diğer alanları da doldur (varsa)
+        fillOtherFields();
+        
+        // Sonuç kontrolü
+        if (fieldsSet === 0) {
+            throw new Error('Hiçbir alan doldurulmadı. Form yapısı değişmiş olabilir.');
+        }
         
         // Başarı mesajı
-        const notification = document.createElement('div');
-        notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-        notification.innerHTML = '🎲 Test verileri başarıyla eklendi!';
-        document.body.appendChild(notification);
+        showSuccessNotification(`Test verileri başarıyla eklendi! (${fieldsSet} alan dolduruldu)`);
         
-        // 3 saniye sonra kaldır
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
-        
-        console.log('✅ Test verisi oluşturma tamamlandı');
+        // Form alanlarına odaklan
+        if (ilInput) {
+            ilInput.focus();
+            ilInput.blur();
+        }
         
     } catch (error) {
-        console.error('❌ Test verisi oluşturulurken hata:', error);
-        alert('Test verisi oluşturulurken hata oluştu: ' + error.message);
+        console.error('Test verisi oluşturma hatası:', error);
+        showErrorNotification('⚠️ Test verisi oluşturulurken hata oluştu: ' + error.message);
     }
 }
 
-// Sayfa yüklendiğinde debug bilgileri
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('📄 Veri formu sayfası yüklendi');
-    
-    // Mevcut input alanlarını kontrol et
-    const inputs = document.querySelectorAll('input[name*="sutun_"]');
-    console.log('🔍 Bulunan input alanları:', inputs.length);
-    
-    inputs.forEach((input, index) => {
-        console.log(`Input ${index + 1}:`, input.name, input.placeholder);
+// Diğer alanları doldurma fonksiyonu
+function fillOtherFields() {
+    // Tarih alanları
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    dateInputs.forEach(input => {
+        const today = new Date();
+        const randomDays = Math.floor(Math.random() * 365); // Son 1 yıl içinde
+        const randomDate = new Date(today.getTime() - (randomDays * 24 * 60 * 60 * 1000));
+        input.value = randomDate.toISOString().split('T')[0];
     });
     
-    // Form submit olayını yakala
+    // Diğer text alanları
+    const textInputs = document.querySelectorAll('input[type="text"]:not([name="sutun_25"]):not([name="sutun_24"])');
+    const sampleTexts = ['Proje A', 'Görev B', 'Açıklama C', 'Test D', 'Durum E'];
+    textInputs.forEach(input => {
+        if (!input.value && !input.readOnly) {
+            const randomText = sampleTexts[Math.floor(Math.random() * sampleTexts.length)];
+            input.value = randomText;
+        }
+    });
+}
+
+// Başarı bildirimi fonksiyonu
+function showSuccessNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-xl z-50 transform transition-all duration-300 max-w-sm';
+    notification.innerHTML = `
+        <div class="flex items-center gap-3">
+            <span class="text-2xl">✅</span>
+            <div>
+                <div class="font-medium">${message}</div>
+                <div class="text-green-100 text-sm mt-1">Formu gözden geçirin ve kaydedin</div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(notification);
+    
+    // 5 saniye sonra kaldır
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 300);
+    }, 5000);
+}
+
+// Hata bildirimi fonksiyonu
+function showErrorNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-lg shadow-xl z-50 transform transition-all duration-300 max-w-sm';
+    notification.innerHTML = `
+        <div class="flex items-center gap-3">
+            <span class="text-2xl">❌</span>
+            <div>
+                <div class="font-medium">${message}</div>
+                <div class="text-red-100 text-sm mt-1">Lütfen sayfayı yenileyin</div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(notification);
+    
+    // 7 saniye sonra kaldır
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 300);
+    }, 7000);
+}
+
+// Sayfa yüklendiğinde setup
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Veri formu sayfası yüklendi');
+    
+    // Test butonu kontrolü
+    const testButton = document.querySelector('button[onclick="generateFakeData()"]');
+    if (testButton) {
+        console.log('✅ Test verisi butonu bulundu');
+    } else {
+        console.log('⚠️ Test verisi butonu bulunamadı');
+    }
+    
+    // Form alanı kontrolü
+    const formInputs = document.querySelectorAll('input[name^="sutun_"]');
+    console.log(`📝 Toplam form alanı: ${formInputs.length}`);
+    
+    // Form submit kontrolü
     const form = document.querySelector('form');
     if (form) {
         form.addEventListener('submit', function(e) {
-            console.log('📤 Form submit ediliyor...');
+            // Temel validasyon kontrolü
+            const plakaInput = document.querySelector('input[name="sutun_24"]');
+            const ilAdiInput = document.querySelector('input[name="sutun_25"]');
             
-            // Tüm form değerlerini kontrol et
-            const formData = new FormData(form);
-            console.log('📋 Form verileri:');
-            for (let [key, value] of formData.entries()) {
-                console.log(`  ${key}: "${value}"`);
-            }
-            
-            // Boş alanları kontrol et
-            const emptyFields = [];
-            inputs.forEach(input => {
-                if (!input.value.trim()) {
-                    emptyFields.push(input.name);
+            if (plakaInput && ilAdiInput) {
+                const plakaValue = plakaInput.value.trim();
+                const ilAdiValue = ilAdiInput.value.trim();
+                
+                // Plaka alanına şehir ismi yazılmış mı?
+                if (plakaValue && isNaN(plakaValue)) {
+                    e.preventDefault();
+                    showErrorNotification('Plaka alanına sadece rakam girebilirsiniz (01-81)');
+                    plakaInput.focus();
+                    return false;
                 }
-            });
-            
-            if (emptyFields.length > 0) {
-                console.log('⚠️ Boş alanlar:', emptyFields);
-            } else {
-                console.log('✅ Tüm alanlar dolu');
+                
+                // İl Adı alanına rakam yazılmış mı?
+                if (ilAdiValue && !isNaN(ilAdiValue)) {
+                    e.preventDefault();
+                    showErrorNotification('İl Adı alanına şehir ismi yazın');
+                    ilAdiInput.focus();
+                    return false;
+                }
+                
+                // Plaka aralık kontrolü
+                if (plakaValue && !isNaN(plakaValue)) {
+                    const plakaNum = parseInt(plakaValue);
+                    if (plakaNum < 1 || plakaNum > 81) {
+                        e.preventDefault();
+                        showErrorNotification('Plaka kodu 01-81 arasında olmalıdır');
+                        plakaInput.focus();
+                        return false;
+                    }
+                }
             }
+            
+            // Başarılı form gönderimi için bildirim
+            console.log('📝 Form gönderiliyor...');
         });
     }
     
-    // Cihaz sayısı input'larına event listener ekle
+    // Cihaz sayısı hesaplama
     setupAutoCalculation();
+    
+    // Test butonuna tıklama olaylarını dinle
+    setupTestButtonEvents();
 });
 
-// Otomatik hesaplama için event listener'ları ayarla
+// Test butonu event setup
+function setupTestButtonEvents() {
+    const testButton = document.querySelector('button[onclick="generateFakeData()"]');
+    if (testButton) {
+        // Ek event listener ekle (onclick dışında)
+        testButton.addEventListener('click', function(e) {
+            console.log('🎲 Test butonu tıklandı');
+            // onclick fonksiyonu zaten çalışacak, burada sadece log yapıyoruz
+        });
+        
+        // Hover efekti ekle
+        testButton.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.05)';
+        });
+        
+        testButton.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    }
+}
+
+// Otomatik hesaplama için basit function
 function setupAutoCalculation() {
     const cihazInputs = document.querySelectorAll('input[type="number"]');
     
     cihazInputs.forEach(input => {
-        if (input.placeholder && (input.placeholder.includes('0, 5, 25, 100') || input.placeholder.includes('Kurulacak') || input.placeholder.includes('Kurulan') || input.placeholder.includes('Arızalı'))) {
+        if (input.placeholder && input.placeholder.includes('0, 5, 25, 100')) {
             input.addEventListener('input', calculateCompletion);
-            input.addEventListener('change', calculateCompletion);
-            console.log('🔗 Event listener eklendi:', input.name);
         }
     });
 }
 
-// Tamamlanma durumunu otomatik hesapla
+// Basit tamamlanma hesaplama
 function calculateCompletion() {
-    console.log('🧮 Tamamlanma durumu hesaplanıyor...');
-    
     try {
-        // Kurulacak cihaz sayısını bul
-        let kurulacakInput = null;
-        const kurulacakInputs = document.querySelectorAll('input[type="number"]');
+        const kurulacakInput = document.querySelector('input[name="sutun_26"]');
+        const kurulanInput = document.querySelector('input[name="sutun_27"]');
+        const tamamlanmaInputs = document.querySelectorAll('input[placeholder="Otomatik hesaplanacak"]');
         
-        kurulacakInputs.forEach(input => {
-            if (input.placeholder && input.placeholder.includes('0, 5, 25, 100')) {
-                kurulacakInput = input;
-            }
-        });
-        
-        // Kurulan cihaz sayısını bul
-        let kurulanInput = null;
-        kurulacakInputs.forEach(input => {
-            if (input.placeholder && input.placeholder.includes('0, 5, 25, 100') && input !== kurulacakInput) {
-                kurulanInput = input;
-            }
-        });
-        
-        // Tamamlanma durumu input'unu bul
-        const tamamlanmaInput = document.querySelector('input[placeholder="Otomatik hesaplanacak"]');
-        
-        if (kurulacakInput && kurulanInput && tamamlanmaInput) {
+        if (kurulacakInput && kurulanInput && tamamlanmaInputs.length > 0) {
             const kurulacak = parseInt(kurulacakInput.value) || 0;
             const kurulan = parseInt(kurulanInput.value) || 0;
             
-            console.log('📊 Kurulacak:', kurulacak, 'Kurulan:', kurulan);
-            
+            let yuzde = 0;
             if (kurulacak > 0) {
-                const tamamlanmaYuzdesi = Math.round((kurulan / kurulacak) * 100);
-                tamamlanmaInput.value = tamamlanmaYuzdesi;
-                console.log('✅ Tamamlanma yüzdesi hesaplandı:', tamamlanmaYuzdesi);
-                
-                // Renk kodlaması ekle
-                if (tamamlanmaYuzdesi >= 80) {
-                    tamamlanmaInput.style.backgroundColor = '#dcfce7'; // Yeşil
-                    tamamlanmaInput.style.borderColor = '#16a34a';
-                } else if (tamamlanmaYuzdesi >= 60) {
-                    tamamlanmaInput.style.backgroundColor = '#fef3c7'; // Sarı
-                    tamamlanmaInput.style.borderColor = '#d97706';
-                } else if (tamamlanmaYuzdesi >= 40) {
-                    tamamlanmaInput.style.backgroundColor = '#fed7aa'; // Turuncu
-                    tamamlanmaInput.style.borderColor = '#ea580c';
-                } else {
-                    tamamlanmaInput.style.backgroundColor = '#fecaca'; // Kırmızı
-                    tamamlanmaInput.style.borderColor = '#dc2626';
-                }
-            } else {
-                tamamlanmaInput.value = 0;
-                tamamlanmaInput.style.backgroundColor = '#f3f4f6'; // Gri
-                tamamlanmaInput.style.borderColor = '#d1d5db';
+                yuzde = (kurulan / kurulacak) * 100;
+                yuzde = Math.round(yuzde * 1000) / 1000; // 3 ondalık basamak
+                yuzde = Math.min(100, Math.max(0, yuzde)); // 0-100 arasında sınırla
             }
+            
+            // Tüm tamamlanma alanlarını güncelle
+            tamamlanmaInputs.forEach(input => {
+                input.value = yuzde;
+            });
+            
+            console.log(`✅ Tamamlanma yüzdesi hesaplandı: ${yuzde}% (${kurulan}/${kurulacak})`);
         }
-        
     } catch (error) {
-        console.error('❌ Hesaplama hatası:', error);
+        console.error('Hesaplama hatası:', error);
     }
 }
 

@@ -217,10 +217,10 @@ class AnaVeri(models.Model):
     
     @property
     def tamamlanma_yuzdesi(self):
-        """Kurulum tamamlanma yüzdesini hesapla"""
+        """Kurulum tamamlanma yüzdesini hesapla (3 ondalik basamak ile)"""
         if self.kurulacak_cihaz_sayisi == 0:
             return 0
-        return round((self.kurulan_cihaz_sayisi / self.kurulacak_cihaz_sayisi) * 100, 1)
+        return round((self.kurulan_cihaz_sayisi / self.kurulacak_cihaz_sayisi) * 100, 3)
     
     @property
     def kalan_cihaz_sayisi(self):

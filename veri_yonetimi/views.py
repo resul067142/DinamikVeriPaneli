@@ -50,7 +50,7 @@ def ana_sayfa(request):
     turkiye_toplam_kurulacak = sum(veri.kurulacak_cihaz_sayisi for veri in AnaVeri.objects.all())
     turkiye_toplam_kurulan = sum(veri.kurulan_cihaz_sayisi for veri in AnaVeri.objects.all())
     turkiye_toplam_arizali = sum(veri.arizali_cihaz_sayisi for veri in AnaVeri.objects.all())
-    turkiye_tamamlanma_yuzdesi = round((turkiye_toplam_kurulan / turkiye_toplam_kurulacak * 100), 1) if turkiye_toplam_kurulacak > 0 else 0
+    turkiye_tamamlanma_yuzdesi = round((turkiye_toplam_kurulan / turkiye_toplam_kurulacak * 100), 3) if turkiye_toplam_kurulacak > 0 else 0
     
     # İl özelinde istatistikler
     il_istatistikleri = []
@@ -71,7 +71,7 @@ def ana_sayfa(request):
     il_tamamlanma_verileri = []
     for veri in tum_veriler:
         if veri.kurulacak_cihaz_sayisi > 0:
-            yuzde = round((veri.kurulan_cihaz_sayisi / veri.kurulacak_cihaz_sayisi * 100), 1)
+            yuzde = round((veri.kurulan_cihaz_sayisi / veri.kurulacak_cihaz_sayisi * 100), 3)
             il_tamamlanma_verileri.append({
                 'il': veri.il_adi,
                 'yuzde': yuzde,
@@ -269,7 +269,7 @@ def veri_listesi(request):
     turkiye_toplam_kurulacak = sum(veri.kurulacak_cihaz_sayisi for veri in AnaVeri.objects.all())
     turkiye_toplam_kurulan = sum(veri.kurulan_cihaz_sayisi for veri in AnaVeri.objects.all())
     turkiye_toplam_arizali = sum(veri.arizali_cihaz_sayisi for veri in AnaVeri.objects.all())
-    turkiye_tamamlanma_yuzdesi = round((turkiye_toplam_kurulan / turkiye_toplam_kurulacak * 100), 1) if turkiye_toplam_kurulacak > 0 else 0
+    turkiye_tamamlanma_yuzdesi = round((turkiye_toplam_kurulan / turkiye_toplam_kurulacak * 100), 3) if turkiye_toplam_kurulacak > 0 else 0
     
     # İller özelinde istatistik veriler
     from django.db.models import Avg, Count, Q
@@ -278,7 +278,7 @@ def veri_listesi(request):
     il_tamamlanma_verileri = []
     for veri in AnaVeri.objects.all():
         if veri.kurulacak_cihaz_sayisi > 0:
-            yuzde = round((veri.kurulan_cihaz_sayisi / veri.kurulacak_cihaz_sayisi * 100), 1)
+            yuzde = round((veri.kurulan_cihaz_sayisi / veri.kurulacak_cihaz_sayisi * 100), 3)
             il_tamamlanma_verileri.append({
                 'il': veri.il_adi,
                 'yuzde': yuzde,

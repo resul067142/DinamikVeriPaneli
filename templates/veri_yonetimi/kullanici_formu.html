@@ -1,34 +1,315 @@
 {% extends 'base.html' %}
 {% load custom_filters %}
 
-{% block title %}{% if kullanici %}Kullanıcı Güncelle{% else %}Kullanıcı Ekle{% endif %} - {{ app_name|default:"DVP" }}{% endblock %}
+{% block title %}{% if kullanici %}Kullanıcı Güncelle{% else %}Yeni Kullanıcı Ekle{% endif %} - {{ app_name|default:"DVP" }}{% endblock %}
 
-{% block extra_js %}
+{% block content %}
+<div class="min-h-screen p-4">
+    <div class="w-full max-w-6xl mx-auto">
+        
+        <!-- Test Veri Butonu -->
+        {% if not kullanici %}
+        <div class="text-center mb-8">
+            <button type="button" onclick="generateFakeUserData()" 
+                    class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium text-lg">
+                🎲 Test Verisi
+            </button>
+        </div>
+        {% endif %}
+        
+        <!-- Form -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+            <form method="post" class="space-y-6" novalidate>
+                {% csrf_token %}
+                
+                <!-- Error Messages -->
+                {% if form.errors %}
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-red-600">⚠️</span>
+                            <h3 class="text-red-800 font-medium">Form hataları bulundu</h3>
+                        </div>
+                        <ul class="text-red-700 text-sm space-y-1">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li>• {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <!-- Ana Form Alanları -->
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        
+                        <!-- Ad -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Ad
+                                <span class="text-gray-500 text-xs ml-2">(opsiyonel)</span>
+                            </label>
+                            <input type="text" 
+                                   name="first_name" 
+                                   id="id_first_name"
+                                   value="{{ kullanici.first_name|default:'' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                   placeholder="Örnek: Ahmet"
+                                   maxlength="30">
+                        </div>
+                        
+                        <!-- Soyad -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Soyad
+                                <span class="text-gray-500 text-xs ml-2">(opsiyonel)</span>
+                            </label>
+                            <input type="text" 
+                                   name="last_name" 
+                                   id="id_last_name"
+                                   value="{{ kullanici.last_name|default:'' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                   placeholder="Örnek: Yılmaz"
+                                   maxlength="30">
+                        </div>
+                        
+                        <!-- Kullanıcı Adı -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Kullanıcı Adı 
+                                <span class="text-red-500 text-xs ml-1">*</span>
+                            </label>
+                            <input type="text" 
+                                   name="username" 
+                                   id="id_username"
+                                   value="{{ kullanici.username|default:'' }}"
+                                   {% if kullanici %}readonly{% endif %}
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors {% if kullanici %}bg-gray-50{% endif %}"
+                                   placeholder="Örnek: ahmet.yilmaz"
+                                   pattern="[a-z0-9._-]+"
+                                   title="Sadece küçük harf, rakam, nokta, alt çizgi ve tire"
+                                   maxlength="150"
+                                   required>
+                            <div class="text-xs text-gray-600 mt-1">
+                                Benzersiz kullanıcı adı girin
+                            </div>
+                        </div>
+                        
+                        <!-- E-posta -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                E-posta Adresi
+                                <span class="text-gray-500 text-xs ml-2">(opsiyonel)</span>
+                            </label>
+                            <input type="email" 
+                                   name="email" 
+                                   id="id_email"
+                                   value="{{ kullanici.email|default:'' }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                   placeholder="Örnek: ahmet.yilmaz@dvp.com"
+                                   maxlength="254">
+                        </div>
+                        
+                        <!-- TC Kimlik -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                TC Kimlik No
+                                <span class="text-red-500 text-xs ml-1">*</span>
+                            </label>
+                            <input type="text" 
+                                   name="tc_kimlik" 
+                                   id="id_tc_kimlik"
+                                   value="{% if kullanici.profile.tc_kimlik %}{{ kullanici.profile.tc_kimlik }}{% endif %}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                   placeholder="12345678901"
+                                   pattern="[0-9]{11}"
+                                   maxlength="11"
+                                   oninput="validateTC(this)"
+                                   required>
+                            <div id="tc_error" class="hidden mt-1 text-xs text-red-600"></div>
+                            <div id="tc_success" class="hidden mt-1 text-xs text-green-600">✅ Geçerli TC Kimlik No</div>
+                            <div class="text-xs text-gray-600 mt-1">
+                                11 haneli TC kimlik numarası
+                            </div>
+                        </div>
+                        
+                        {% if not kullanici %}
+                        <!-- Şifre -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Şifre
+                                <span class="text-red-500 text-xs ml-1">*</span>
+                            </label>
+                            <input type="password" 
+                                   name="password1" 
+                                   id="id_password1"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                   placeholder="Güvenli bir şifre girin"
+                                   minlength="8"
+                                   required>
+                            <div class="text-xs text-gray-600 mt-1">
+                                En az 8 karakter, harf ve rakam içermeli
+                            </div>
+                        </div>
+                        
+                        <!-- Şifre Tekrar -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Şifre Tekrar
+                                <span class="text-red-500 text-xs ml-1">*</span>
+                            </label>
+                            <input type="password" 
+                                   name="password2" 
+                                   id="id_password2"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                   placeholder="Şifrenizi tekrar girin"
+                                   minlength="8"
+                                   required>
+                            <div class="text-xs text-gray-600 mt-1">
+                                Yukarıdaki şifre ile aynı olmalı
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Rol Seçimi -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Kullanıcı Rolü
+                                <span class="text-gray-500 text-xs ml-2">(opsiyonel)</span>
+                            </label>
+                            <select name="user_role" 
+                                    id="id_user_role"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                <option value="user" {% if not kullanici or not kullanici.is_staff and not kullanici.is_superuser %}selected{% endif %}>Normal Kullanıcı</option>
+                                <option value="staff" {% if kullanici.is_staff and not kullanici.is_superuser %}selected{% endif %}>İl Sorumlusu</option>
+                                <option value="admin" {% if kullanici.is_superuser %}selected{% endif %}>Yönetici</option>
+                            </select>
+                            <div class="text-xs text-gray-600 mt-1">
+                                Kullanıcının sistem içindeki yetki seviyesi
+                            </div>
+                        </div>
+                        
+                        <!-- Durum -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Kullanıcı Durumu
+                            </label>
+                            <select name="is_active" 
+                                    id="id_is_active"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                <option value="true" {% if not kullanici or kullanici.is_active %}selected{% endif %}>Aktif</option>
+                                <option value="false" {% if kullanici and not kullanici.is_active %}selected{% endif %}>Pasif</option>
+                            </select>
+                            <div class="text-xs text-gray-600 mt-1">
+                                Pasif kullanıcılar sisteme giriş yapamaz
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sorumlu İller Bölümü -->
+                    <div class="mt-8">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">
+                            Sorumlu İller 
+                            <span class="text-gray-500 text-xs ml-2">(opsiyonel)</span>
+                        </label>
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                            <div class="mb-3">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" id="select_all_cities" class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                    <span class="text-sm font-medium text-blue-700">🇹🇷 Tüm İlleri Seç / Seçimi Kaldır</span>
+                                </label>
+                            </div>
+                            <hr class="mb-3 border-gray-300">
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+                                {% for il in turkiye_illeri %}
+                                    <label class="flex items-center gap-2 cursor-pointer hover:bg-white p-1 rounded transition-colors">
+                                        <input type="checkbox" 
+                                               name="sorumlu_iller" 
+                                               value="{{ il }}" 
+                                               class="w-3 h-3 text-blue-600 border-gray-300 rounded city-checkbox focus:ring-blue-500"
+                                               {% if kullanici.profile.sorumlu_iller and il in kullanici.profile.get_sorumlu_iller_list %}checked{% endif %}>
+                                        <span class="text-xs text-gray-700">{{ il }}</span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                            <div class="mt-3 text-xs text-gray-600">
+                                ℹ️ Hiç il seçilmezse kullanıcı tüm illerin verilerine erişecektir.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-4 pt-8">
+                    <button type="submit" 
+                            class="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium text-lg">
+                        {% if kullanici %}💾 Güncelle{% else %}➕ Kullanıcıyı Ekle{% endif %}
+                    </button>
+                    <a href="{% url 'veri_yonetimi:kullanici_listesi' %}" 
+                       class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-lg">
+                        ❌ İptal
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
-function generateFakeData() {
-    const fakeNames = ['Ahmet Yılmaz', 'Mehmet Demir', 'Fatma Kaya', 'Ali Özkan', 'Ayşe Çelik'];
-    const randomName = fakeNames[Math.floor(Math.random() * fakeNames.length)];
-    const [firstName, lastName] = randomName.split(' ');
+// Gelişmiş test verisi oluşturma fonksiyonu
+function generateFakeUserData() {
+    console.log('Kullanıcı test verisi oluşturuluyor...');
     
-    document.querySelector('input[name="first_name"]').value = firstName;
-    document.querySelector('input[name="last_name"]').value = lastName;
-    document.querySelector('input[name="username"]').value = `${firstName.toLowerCase()}.${lastName.toLowerCase()}`;
-    document.querySelector('input[name="email"]').value = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@dvp.com`;
-    document.querySelector('input[name="tc_kimlik"]').value = generateFakeTC();
-    document.querySelector('input[name="password1"]').value = 'Test123!';
-    document.querySelector('input[name="password2"]').value = 'Test123!';
-    
-    alert('🎲 Test verileri eklendi!');
+    try {
+        const fakeNames = [
+            'Ahmet Yılmaz', 'Mehmet Demir', 'Fatma Kaya', 'Ali Özkan', 'Ayşe Çelik',
+            'Mustafa Şahin', 'Zeynep Arslan', 'Hasan Polat', 'Elif Koç', 'İbrahim Kurt'
+        ];
+        const randomName = fakeNames[Math.floor(Math.random() * fakeNames.length)];
+        const [firstName, lastName] = randomName.split(' ');
+        
+        // Form alanlarını doldur
+        const firstNameInput = document.getElementById('id_first_name');
+        const lastNameInput = document.getElementById('id_last_name');
+        const usernameInput = document.getElementById('id_username');
+        const emailInput = document.getElementById('id_email');
+        const tcInput = document.getElementById('id_tc_kimlik');
+        const password1Input = document.getElementById('id_password1');
+        const password2Input = document.getElementById('id_password2');
+        const roleSelect = document.getElementById('id_user_role');
+        
+        if (firstNameInput) firstNameInput.value = firstName;
+        if (lastNameInput) lastNameInput.value = lastName;
+        if (usernameInput) usernameInput.value = `${firstName.toLowerCase()}.${lastName.toLowerCase()}`;
+        if (emailInput) emailInput.value = `${firstName.toLowerCase()}.${lastName.toLowerCase()}@dvp.com`;
+        if (tcInput) tcInput.value = generateFakeTC();
+        if (password1Input) password1Input.value = 'Test123!';
+        if (password2Input) password2Input.value = 'Test123!';
+        if (roleSelect) {
+            const roles = ['user', 'staff', 'admin'];
+            roleSelect.value = roles[Math.floor(Math.random() * roles.length)];
+        }
+        
+        // TC validation trigger
+        if (tcInput) {
+            validateTC(tcInput);
+        }
+        
+        showSuccessNotification('🎲 Test verileri başarıyla eklendi!');
+        
+    } catch (error) {
+        console.error('Test verisi oluşturma hatası:', error);
+        showErrorNotification('⚠️ Test verisi oluşturulurken hata oluştu: ' + error.message);
+    }
 }
 
+// TC Kimlik üretme ve validasyon fonksiyonları
 function generateFakeTC() {
-    // TC Kimlik algoritmasına uygun fake TC üret
     let tc = '';
     for (let i = 0; i < 9; i++) {
         tc += Math.floor(Math.random() * 10);
     }
     
-    // 10. ve 11. haneyi hesapla
     let tek = 0, cift = 0;
     for (let i = 0; i < 9; i++) {
         if (i % 2 === 0) {
@@ -46,13 +327,8 @@ function generateFakeTC() {
 
 function validateTC(input) {
     const tc = input.value.replace(/\D/g, '');
-    const tcError = document.getElementById('tc_error');
-    const tcSuccess = document.getElementById('tc_success');
-    
-    // Sadece rakam girişine izin ver
     input.value = tc;
     
-    // TC Kimlik algoritması kontrolü
     if (tc.length === 11) {
         if (tc[0] === '0') {
             showTCError('TC Kimlik No 0 ile başlayamaz');
@@ -90,227 +366,122 @@ function validateTC(input) {
 function showTCError(message) {
     const tcError = document.getElementById('tc_error');
     const tcSuccess = document.getElementById('tc_success');
+    const tcInput = document.getElementById('id_tc_kimlik');
     
-    tcError.textContent = message;
-    tcError.classList.remove('hidden');
-    tcSuccess.classList.add('hidden');
-    
-    document.getElementById('tc_kimlik').classList.add('border-red-500');
-    document.getElementById('tc_kimlik').classList.remove('border-green-500');
+    if (tcError) {
+        tcError.textContent = message;
+        tcError.classList.remove('hidden');
+    }
+    if (tcSuccess) tcSuccess.classList.add('hidden');
+    if (tcInput) {
+        tcInput.classList.add('border-red-500');
+        tcInput.classList.remove('border-green-500');
+    }
 }
 
 function showTCSuccess() {
     const tcError = document.getElementById('tc_error');
     const tcSuccess = document.getElementById('tc_success');
+    const tcInput = document.getElementById('id_tc_kimlik');
     
-    tcError.classList.add('hidden');
-    tcSuccess.classList.remove('hidden');
-    
-    document.getElementById('tc_kimlik').classList.remove('border-red-500');
-    document.getElementById('tc_kimlik').classList.add('border-green-500');
+    if (tcError) tcError.classList.add('hidden');
+    if (tcSuccess) tcSuccess.classList.remove('hidden');
+    if (tcInput) {
+        tcInput.classList.remove('border-red-500');
+        tcInput.classList.add('border-green-500');
+    }
 }
 
 function hideTCMessages() {
     const tcError = document.getElementById('tc_error');
     const tcSuccess = document.getElementById('tc_success');
+    const tcInput = document.getElementById('id_tc_kimlik');
     
-    tcError.classList.add('hidden');
-    tcSuccess.classList.add('hidden');
-    
-    document.getElementById('tc_kimlik').classList.remove('border-red-500', 'border-green-500');
+    if (tcError) tcError.classList.add('hidden');
+    if (tcSuccess) tcSuccess.classList.add('hidden');
+    if (tcInput) {
+        tcInput.classList.remove('border-red-500', 'border-green-500');
+    }
 }
-</script>
-{% endblock %}
 
-{% block content %}
-<div class="p-6">
-    <div class="max-w-4xl mx-auto">
-        
-
-        
-        <!-- Test Veri Butonu -->
-        {% if not kullanici %}
-        <div class="text-center mb-6">
-            <button type="button" onclick="generateFakeData()" 
-                    class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-                🎲 Test Verisi
-            </button>
+// Bildirim fonksiyonları
+function showSuccessNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-xl z-50 transform transition-all duration-300 max-w-sm';
+    notification.innerHTML = `
+        <div class="flex items-center gap-3">
+            <span class="text-2xl">✅</span>
+            <div>
+                <div class="font-medium">${message}</div>
+                <div class="text-green-100 text-sm mt-1">Formu gözden geçirin ve kaydedin</div>
+            </div>
         </div>
-        {% endif %}
-        
-        <!-- Form -->
-        <form method="post" class="space-y-4">
-            {% csrf_token %}
-            
-                         <!-- Ad Soyad -->
-             <div class="grid grid-cols-2 gap-4">
-                 <div>
-                     <label class="block text-sm font-medium text-gray-700 mb-1">Ad</label>
-                     <input type="text" name="first_name" value="{{ kullanici.first_name|default:'' }}"
-                            class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
-                            placeholder="Ad">
-                 </div>
-                 <div>
-                     <label class="block text-sm font-medium text-gray-700 mb-1">Soyad</label>
-                     <input type="text" name="last_name" value="{{ kullanici.last_name|default:'' }}"
-                            class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
-                            placeholder="Soyad">
-                 </div>
-             </div>
-             
-                         <!-- Kullanıcı Adı ve E-posta -->
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Kullanıcı Adı <span class="text-red-500">*</span>
-                    </label>
-                    <input type="text" name="username" value="{{ kullanici.username|default:'' }}"
-                           {% if kullanici %}readonly{% endif %}
-                           class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 {% if kullanici %}bg-gray-100{% endif %}"
-                           placeholder="kullanici.adi"
-                           required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">E-posta</label>
-                    <input type="email" name="email" value="{{ kullanici.email|default:'' }}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
-                           placeholder="kullanici@domain.com">
-                </div>
-            </div>
-            
-            <!-- TC Kimlik -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    TC Kimlik No <span class="text-red-500">*</span>
-                </label>
-                <input type="text" name="tc_kimlik" id="tc_kimlik" 
-                       value="{% if kullanici.profile.tc_kimlik %}{{ kullanici.profile.tc_kimlik }}{% endif %}"
-                       class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
-                       placeholder="12345678901"
-                       pattern="[0-9]{11}"
-                       maxlength="11"
-                       oninput="validateTC(this)"
-                       required>
-                <div id="tc_error" class="hidden mt-1 text-xs text-red-600"></div>
-                <div id="tc_success" class="hidden mt-1 text-xs text-green-600">✅ Geçerli TC Kimlik No</div>
-            </div>
-            
-            <!-- Sorumlu İller -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Sorumlu İller <span class="text-gray-500">(İsteğe bağlı)</span>
-                </label>
-                <div class="border border-gray-300 rounded p-3 max-h-48 overflow-y-auto bg-white">
-                    <div class="mb-2">
-                        <label class="flex items-center gap-2">
-                            <input type="checkbox" id="select_all_cities" class="w-4 h-4 text-blue-600 border-gray-300 rounded">
-                            <span class="text-sm font-medium text-blue-600">Tüm İlleri Seç / Seçimi Kaldır</span>
-                        </label>
-                    </div>
-                    <hr class="mb-2">
-                    <div class="grid grid-cols-3 gap-2">
-                        {% for il in turkiye_illeri %}
-                            <label class="flex items-center gap-1">
-                                <input type="checkbox" 
-                                       name="sorumlu_iller" 
-                                       value="{{ il }}" 
-                                       class="w-3 h-3 text-blue-600 border-gray-300 rounded city-checkbox"
-                                       {% if kullanici.profile.sorumlu_iller and il in kullanici.profile.get_sorumlu_iller_list %}checked{% endif %}>
-                                <span class="text-xs">{{ il }}</span>
-                            </label>
-                        {% endfor %}
-                    </div>
-                </div>
-                <p class="text-xs text-gray-500 mt-1">
-                    ℹ️ Kullanıcının sorumlu olduğu iller. Hiç seçilmezse tüm illerin verilerini görebilir.
-                </p>
-            </div>
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) notification.remove();
+        }, 300);
+    }, 5000);
+}
 
-            <script>
-            // Tümünü seç/kaldır işlevi
-            document.getElementById('select_all_cities').addEventListener('change', function() {
-                const checkboxes = document.querySelectorAll('.city-checkbox');
-                checkboxes.forEach(cb => cb.checked = this.checked);
-            });
-            
-            // Bireysel checkbox değişikliklerini izle
-            document.querySelectorAll('.city-checkbox').forEach(cb => {
-                cb.addEventListener('change', function() {
-                    const allCheckboxes = document.querySelectorAll('.city-checkbox');
-                    const checkedCheckboxes = document.querySelectorAll('.city-checkbox:checked');
-                    const selectAllCheckbox = document.getElementById('select_all_cities');
-                    
-                    if (checkedCheckboxes.length === allCheckboxes.length) {
-                        selectAllCheckbox.checked = true;
-                        selectAllCheckbox.indeterminate = false;
-                    } else if (checkedCheckboxes.length === 0) {
-                        selectAllCheckbox.checked = false;
-                        selectAllCheckbox.indeterminate = false;
-                    } else {
-                        selectAllCheckbox.checked = false;
-                        selectAllCheckbox.indeterminate = true;
-                    }
-                });
-            });
-            </script>
-            
-            <!-- Şifre (Sadece yeni kullanıcılar) -->
-            {% if not kullanici %}
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Şifre <span class="text-red-500">*</span>
-                    </label>
-                    <input type="password" name="password1" id="password1"
-                           class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
-                           placeholder="Şifre"
-                           required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Şifre Tekrar <span class="text-red-500">*</span>
-                    </label>
-                    <input type="password" name="password2" id="password2"
-                           class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
-                           placeholder="Şifre tekrar"
-                           required>
-                </div>
+function showErrorNotification(message) {
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-lg shadow-xl z-50 transform transition-all duration-300 max-w-sm';
+    notification.innerHTML = `
+        <div class="flex items-center gap-3">
+            <span class="text-2xl">❌</span>
+            <div>
+                <div class="font-medium">${message}</div>
+                <div class="text-red-100 text-sm mt-1">Lütfen tekrar deneyin</div>
             </div>
-            {% endif %}
+        </div>
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) notification.remove();
+        }, 300);
+    }, 7000);
+}
+
+// Sayfa yüklendiğinde event listener'ları ayarla
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Kullanıcı formu sayfası yüklendi');
+    
+    // Tümünü seç/kaldır işlevi
+    const selectAllCheckbox = document.getElementById('select_all_cities');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.city-checkbox');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+    }
+    
+    // Bireysel checkbox değişikliklerini izle
+    document.querySelectorAll('.city-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            const allCheckboxes = document.querySelectorAll('.city-checkbox');
+            const checkedCheckboxes = document.querySelectorAll('.city-checkbox:checked');
             
-                         <!-- Yetkiler -->
-             <div class="space-y-3">
-                 <label class="text-sm font-medium text-gray-700">Yetkiler</label>
-                 <div class="grid grid-cols-3 gap-4">
-                     <label class="flex items-center gap-2">
-                         <input type="checkbox" name="is_superuser" {% if kullanici.is_superuser %}checked{% endif %}
-                                class="w-4 h-4 text-blue-600 border-gray-300 rounded">
-                         <span class="text-sm">Süper Kullanıcı</span>
-                     </label>
-                     <label class="flex items-center gap-2">
-                         <input type="checkbox" name="is_staff" {% if kullanici.is_staff %}checked{% endif %}
-                                class="w-4 h-4 text-blue-600 border-gray-300 rounded">
-                         <span class="text-sm">İl Sorumlusu</span>
-                     </label>
-                     <label class="flex items-center gap-2">
-                         <input type="checkbox" name="is_active" {% if not kullanici or kullanici.is_active %}checked{% endif %}
-                                class="w-4 h-4 text-blue-600 border-gray-300 rounded">
-                         <span class="text-sm">Aktif</span>
-                     </label>
-                 </div>
-             </div>
-            
-            <!-- Butonlar -->
-            <div class="flex gap-3 pt-4">
-                <button type="submit" class="flex-1 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
-                    {% if kullanici %}💾 Güncelle{% else %}➕ Ekle{% endif %}
-                </button>
-                <a href="{% url 'veri_yonetimi:kullanici_listesi' %}" 
-                   class="px-4 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50">
-                    ❌ İptal
-                </a>
-            </div>
-        </form>
-    </div>
-</div>
+            if (selectAllCheckbox) {
+                if (checkedCheckboxes.length === allCheckboxes.length) {
+                    selectAllCheckbox.checked = true;
+                    selectAllCheckbox.indeterminate = false;
+                } else if (checkedCheckboxes.length === 0) {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = false;
+                } else {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = true;
+                }
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

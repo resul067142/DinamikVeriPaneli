@@ -20,49 +20,31 @@ class AnaVeriForm(forms.Form):
         for sutun in aktif_sutunlar:
             field_name = f'sutun_{sutun.id}'
             
-            # İl Adı sütunu için özel işlem
-            if sutun.ad == 'İl Adı':
-                # İl seçeneklerini hazırla
-                il_choices = [('', 'İl seçiniz...')]
-                
-                # Türkiye'nin tüm illeri
-                turkiye_illeri = [
-                    'Adana', 'Adıyaman', 'Afyonkarahisar', 'Ağrı', 'Amasya', 'Ankara', 'Antalya', 'Artvin', 
-                    'Aydın', 'Balıkesir', 'Bilecik', 'Bingöl', 'Bitlis', 'Bolu', 'Burdur', 'Bursa', 
-                    'Çanakkale', 'Çankırı', 'Çorum', 'Denizli', 'Diyarbakır', 'Edirne', 'Elazığ', 'Erzincan', 
-                    'Erzurum', 'Eskişehir', 'Gaziantep', 'Giresun', 'Gümüşhane', 'Hakkari', 'Hatay', 'Isparta', 
-                    'Mersin', 'İstanbul', 'İzmir', 'Kars', 'Kastamonu', 'Kayseri', 'Kırklareli', 'Kırşehir', 
-                    'Kocaeli', 'Konya', 'Kütahya', 'Malatya', 'Manisa', 'Kahramanmaraş', 'Mardin', 'Muğla', 
-                    'Muş', 'Nevşehir', 'Niğde', 'Ordu', 'Rize', 'Sakarya', 'Samsun', 'Siirt', 'Sinop', 
-                    'Sivas', 'Tekirdağ', 'Tokat', 'Trabzon', 'Tunceli', 'Şanlıurfa', 'Uşak', 'Van', 
-                    'Yozgat', 'Zonguldak', 'Aksaray', 'Bayburt', 'Karaman', 'Kırıkkale', 'Batman', 'Şırnak', 
-                    'Bartın', 'Ardahan', 'Iğdır', 'Yalova', 'Karabük', 'Kilis', 'Osmaniye', 'Düzce'
-                ]
-                
-                # Kullanıcı bazlı sınırlama
-                if self.user and not self.user.is_superuser:
-                    try:
-                        user_profile = self.user.profile
-                        sorumlu_iller = user_profile.get_sorumlu_iller_list()
-                        if sorumlu_iller:
-                            # Sadece kullanıcının sorumlu olduğu iller
-                            il_choices.extend([(il, il) for il in sorted(sorumlu_iller)])
-                        else:
-                            # Kullanıcının sorumlu olduğu il yoksa tüm iller
-                            il_choices.extend([(il, il) for il in sorted(turkiye_illeri)])
-                    except:
-                        # UserProfile yoksa sadece boş seçenek
-                        il_choices = [('', 'İl seçiniz...')]
-                else:
-                    # Superuser için tüm iller
-                    il_choices.extend([(il, il) for il in sorted(turkiye_illeri)])
-                
-                self.fields[field_name] = forms.ChoiceField(
-                    choices=il_choices,
+            # Plaka sütunu için özel işlem
+            if sutun.ad == 'Plaka':
+                # Plaka için simple text input (choice olmasın)
+                self.fields[field_name] = forms.CharField(
+                    max_length=10,
                     label=sutun.ad,
                     required=False,
-                    widget=forms.Select(attrs={
+                    widget=forms.TextInput(attrs={
                         'class': 'w-full px-3 py-2 border border-gray-300 rounded-md',
+                        'placeholder': 'Plaka kodu girin (01-81)',
+                        'pattern': '[0-9]{1,2}',
+                        'title': '1-81 arası plaka kodu'
+                    })
+                )
+            # İl Adı sütunu için özel işlem
+            elif sutun.ad == 'İl Adı':
+                # İl Adı için de simple text input (choice olmasın)
+                self.fields[field_name] = forms.CharField(
+                    max_length=50,
+                    label=sutun.ad,
+                    required=False,
+                    widget=forms.TextInput(attrs={
+                        'class': 'w-full px-3 py-2 border border-gray-300 rounded-md',
+                        'placeholder': 'İl adını girin',
+                        'list': f'il_listesi_{sutun.id}'
                     })
                 )
 
@@ -122,7 +104,20 @@ class AnaVeriForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         
-
+        # Plaka validasyonu - sadece Plaka sütunları için kontrol et
+        plaka_sutunlar = Sütun.objects.filter(ad='Plaka', aktif=True)
+        
+        for sutun in plaka_sutunlar:
+            field_name = f'sutun_{sutun.id}'
+            if field_name in cleaned_data:
+                value = cleaned_data[field_name]
+                
+                # Plaka alanı için özel validasyon (opsiyonel)
+                if value:  # Sadece değer varsa validate et
+                    if not value.isdigit():
+                        self.add_error(field_name, 'Plaka alanına sadece rakam girebilirsiniz. Örnek: 01, 06, 34, 35')
+                    elif int(value) < 1 or int(value) > 81:
+                        self.add_error(field_name, 'Plaka 01-81 arasında olmalıdır. Girdiğiniz değer: ' + value)
         
         return cleaned_data
     
