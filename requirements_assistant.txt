@@ -1,0 +1,5 @@
+openai>=0.27.0
+gTTS>=2.3.1
+SpeechRecognition>=3.10.0
+pydub>=0.25.1
+elevenlabs>=0.2.0

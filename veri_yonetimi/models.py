@@ -7,17 +7,25 @@ class UserProfile(models.Model):
     """
     Kullanıcı profil bilgileri - TC kimlik numarası ve sorumlu iller
     """
+    USER_ROLES = [
+        ('viewer', 'Seyirci'),
+        ('province_manager', 'İl Sorumlusu'),
+        ('province_admin', 'İl Yöneticisi'),
+        ('super_user', 'Süper Kullanıcı'),
+    ]
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile', verbose_name="Kullanıcı")
     tc_kimlik = models.CharField(max_length=11, unique=True, blank=True, null=True, verbose_name="TC Kimlik No")
     sorumlu_iller = models.TextField(blank=True, null=True, verbose_name="Sorumlu İller", 
                                     help_text="Bu kullanıcının sorumlu olduğu iller (virgülle ayrılmış). Boşsa tüm illeri görebilir.")
+    role = models.CharField(max_length=20, choices=USER_ROLES, default='viewer', verbose_name="Kullanıcı Rolü")
     
     class Meta:
         verbose_name = "Kullanıcı Profili"
         verbose_name_plural = "Kullanıcı Profilleri"
     
     def __str__(self):
-        return f"{self.user.username} - {self.get_sorumlu_iller_display()}"
+        return f"{self.user.username} - {self.get_role_display()} - {self.get_sorumlu_iller_display()}"
     
     def get_sorumlu_iller_list(self):
         """Sorumlu illeri liste olarak döndür"""
@@ -56,6 +64,70 @@ class UserProfile(models.Model):
         if self.tc_kimlik:
             return f"{self.tc_kimlik[:3]}***{self.tc_kimlik[-2:]}"
         return "Belirtilmemiş"
+    
+    def can_view_province(self, il_adi):
+        """Kullanıcının belirtilen ili görüntüleyebilme yetkisi"""
+        # Super kullanıcı tüm illeri görebilir
+        if self.role == 'super_user':
+            return True
+        
+        # Seyirci ve il sorumlusu sadece atanmış illeri görebilir
+        if self.role in ['viewer', 'province_manager']:
+            return self.is_responsible_for_il(il_adi)
+        
+        # İl yöneticisi tüm illeri görebilir
+        if self.role == 'province_admin':
+            return True
+        
+        return False
+    
+    def can_edit_province(self, il_adi):
+        """Kullanıcının belirtilen ili düzenleme yetkisi"""
+        # Super kullanıcı tüm illeri düzenleyebilir
+        if self.role == 'super_user':
+            return True
+        
+        # İl yöneticisi tüm illeri düzenleyebilir
+        if self.role == 'province_admin':
+            return True
+        
+        # İl sorumlusu sadece atanmış illeri düzenleyebilir
+        if self.role == 'province_manager':
+            return self.is_responsible_for_il(il_adi)
+        
+        # Seyirci hiçbir şeyi düzenleyemez
+        return False
+    
+    def can_manage_users(self):
+        """Kullanıcının kullanıcı yönetimi yetkisi"""
+        return self.role in ['province_admin', 'super_user']
+    
+    def can_add_users(self):
+        """Kullanıcının kullanıcı ekleme yetkisi"""
+        return self.role in ['province_admin', 'super_user']
+    
+    def can_edit_users(self):
+        """Kullanıcının kullanıcı düzenleme yetkisi"""
+        return self.role in ['province_admin', 'super_user']
+    
+    def can_delete_users(self):
+        """Kullanıcının kullanıcı silme yetkisi"""
+        return self.role == 'super_user'
+    
+    def get_role_permissions(self):
+        """Rol bazlı izinleri döndür"""
+        permissions = {
+            'can_view_all_data': self.role in ['province_admin', 'super_user'],
+            'can_edit_all_data': self.role in ['province_admin', 'super_user'],
+            'can_manage_provinces': self.role in ['province_admin', 'super_user'],
+            'can_manage_users': self.role in ['province_admin', 'super_user'],
+            'can_add_users': self.role in ['province_admin', 'super_user'],
+            'can_edit_users': self.role in ['province_admin', 'super_user'],
+            'can_delete_users': self.role == 'super_user',
+            'role_name': self.get_role_display(),
+            'role_code': self.role
+        }
+        return permissions
 
 class UserLog(models.Model):
     """

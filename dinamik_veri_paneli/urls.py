@@ -26,6 +26,7 @@ urlpatterns = [
     path('login/', RedirectView.as_view(url='/veri/login/', permanent=False)),
     path('veri/', include('veri_yonetimi.urls')),
     path('api/', include('veri_yonetimi.api_urls')),
+    path('assistant/', include('assistant.urls')),  # Add this line
 ]
 
 # Debug toolbar URLs

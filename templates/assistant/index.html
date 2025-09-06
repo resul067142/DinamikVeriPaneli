@@ -1,0 +1,674 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Asistan - {{ app_name|default:"DVP" }}{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+<script>
+let isListening = false;
+let isSpeaking = false;
+let emotion = 'neutral';
+let mediaRecorder;
+let audioChunks = [];
+let useElevenLabs = true; // Varsayılan olarak ElevenLabs
+let streamAudio = false; // Ses akışı
+let currentAudio = null;
+
+// Asistanı başlat
+document.addEventListener('DOMContentLoaded', function() {
+    // Hoşgeldiniz mesajını oynat
+    setTimeout(() => {
+        speakText("Merhaba! Size bugün nasıl yardımcı olabilirim?");
+        updateAvatar();
+    }, 1000);
+});
+
+// Avatarı duruma göre güncelle
+function updateAvatar() {
+    // Elementlerin varlığını kontrol et
+    const avatar = document.getElementById('assistantAvatar');
+    const mouth = document.getElementById('mouth');
+    const leftEye = document.getElementById('leftEye');
+    const rightEye = document.getElementById('rightEye');
+    
+    // Herhangi bir element eksikse erken dön
+    if (!avatar || !mouth || !leftEye || !rightEye) {
+        return;
+    }
+    
+    // Tüm animasyonları sıfırla
+    avatar.classList.remove('animate-pulse', 'animate-bounce');
+    mouth.classList.remove('mouth-speaking', 'mouth-neutral');
+    leftEye.classList.remove('eye-blinking');
+    rightEye.classList.remove('eye-blinking');
+    
+    if (isSpeaking) {
+        // Konuşma animasyonu
+        mouth.classList.add('mouth-speaking');
+        avatar.classList.add('animate-pulse');
+    } else if (isListening) {
+        // Dinleme animasyonu
+        avatar.classList.add('animate-pulse');
+    } else if (emotion === 'thinking') {
+        // Düşünme animasyonu
+        leftEye.classList.add('eye-blinking');
+        rightEye.classList.add('eye-blinking');
+    } else {
+        // Nötr durum
+        mouth.classList.add('mouth-neutral');
+    }
+    
+    // Duygu göstergeleri
+    const emotionIndicator = document.getElementById('emotionIndicator');
+    if (emotionIndicator) {
+        emotionIndicator.innerHTML = '';
+        
+        if (emotion === 'smiling') {
+            emotionIndicator.innerHTML = '<span class="text-2xl">😊</span>';
+        } else if (emotion === 'thinking') {
+            emotionIndicator.innerHTML = '<span class="text-2xl">🤔</span>';
+        }
+    }
+}
+
+// TTS motorunu değiştir
+function toggleTTS() {
+    useElevenLabs = !useElevenLabs;
+    const ttsButton = document.getElementById('ttsButton');
+    if (ttsButton) {
+        ttsButton.innerHTML = useElevenLabs ? 
+            '<span class="mr-2">🎤</span> ElevenLabs' : 
+            '<span class="mr-2">🔊</span> gTTS';
+        showNotification(`TTS motoru ${useElevenLabs ? 'ElevenLabs' : 'gTTS'} olarak değiştirildi`, 'info');
+    }
+}
+
+// Ses akışını değiştir
+function toggleStreaming() {
+    streamAudio = !streamAudio;
+    const streamingButton = document.getElementById('streamingButton');
+    if (streamingButton) {
+        streamingButton.innerHTML = streamAudio ? 
+            '<span class="mr-2">📡</span> Akış AÇIK' : 
+            '<span class="mr-2">📡</span> Akış KAPALI';
+        streamingButton.className = streamAudio ? 
+            'btn btn-success' : 
+            'btn btn-info';
+        showNotification(`Ses akışı ${streamAudio ? 'etkin' : 'devre dışı'}`, 'info');
+    }
+}
+
+// Mikrofonu aç/kapat
+function toggleMicrophone() {
+    const micButton = document.getElementById('micButton');
+    const micIcon = document.getElementById('micIcon');
+    
+    if (!isListening) {
+        startListening();
+        if (micButton) {
+            micButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+            micButton.classList.add('bg-red-500', 'hover:bg-red-600', 'animate-pulse');
+        }
+        if (micIcon) {
+            micIcon.textContent = 'stop';
+        }
+        const micIndicator = document.getElementById('micIndicator');
+        if (micIndicator) {
+            micIndicator.classList.remove('hidden');
+        }
+        isListening = true;
+        emotion = 'speaking';
+    } else {
+        stopListening();
+        if (micButton) {
+            micButton.classList.remove('bg-red-500', 'hover:bg-red-600', 'animate-pulse');
+            micButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
+        }
+        if (micIcon) {
+            micIcon.textContent = 'mic';
+        }
+        const micIndicator = document.getElementById('micIndicator');
+        if (micIndicator) {
+            micIndicator.classList.add('hidden');
+        }
+        isListening = false;
+        emotion = 'neutral';
+    }
+    
+    updateAvatar();
+}
+
+// Mikrofonla dinlemeye başla
+async function startListening() {
+    isListening = true;
+    emotion = 'speaking';
+    updateAvatar();
+    
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        
+        mediaRecorder.ondataavailable = event => {
+            audioChunks.push(event.data);
+        };
+        
+        mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            await sendAudioToBackend(audioBlob);
+            stream.getTracks().forEach(track => track.stop());
+        };
+        
+        mediaRecorder.start();
+    } catch (error) {
+        console.error('Mikrofon erişim hatası:', error);
+        showNotification('Mikrofon erişim hatası: ' + error.message, 'error');
+        isListening = false;
+        emotion = 'neutral';
+        // Arayüzü sıfırla
+        const micButton = document.getElementById('micButton');
+        const micIcon = document.getElementById('micIcon');
+        if (micButton) {
+            micButton.classList.remove('bg-red-500', 'hover:bg-red-600', 'animate-pulse');
+            micButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
+        }
+        if (micIcon) {
+            micIcon.textContent = 'mic';
+        }
+        const micIndicator = document.getElementById('micIndicator');
+        if (micIndicator) {
+            micIndicator.classList.add('hidden');
+        }
+        updateAvatar();
+    }
+}
+
+// Dinlemeyi durdur
+function stopListening() {
+    isListening = false;
+    emotion = 'neutral';
+    updateAvatar();
+    
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+    }
+}
+
+// Ses dosyasını sunucuya gönder
+async function sendAudioToBackend(audioBlob) {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'recording.webm');
+    
+    try {
+        showNotification('Sesiniz işleniyor...', 'info');
+        
+        const response = await fetch('/assistant/transcribe/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.text) {
+            const userInput = document.getElementById('userInput');
+            if (userInput) {
+                userInput.value = data.text;
+            }
+            await sendQuestion(data.text);
+        } else {
+            showNotification('Sesiniz anlaşılamadı. Lütfen tekrar deneyin.', 'error');
+        }
+    } catch (error) {
+        console.error('Ses gönderme hatası:', error);
+        showNotification('Ses işleme hatası: ' + error.message, 'error');
+    }
+}
+
+// Metin sorusunu sunucuya gönder
+async function sendQuestion(question = null) {
+    const userInput = document.getElementById('userInput');
+    const questionText = question || (userInput ? userInput.value.trim() : '');
+    
+    if (!questionText) {
+        showNotification('Lütfen bir soru girin veya sesli komut verin', 'warning');
+        return;
+    }
+    
+    // Kullanıcı mesajını sohbete ekle
+    addChatMessage(questionText, 'user');
+    
+    try {
+        // Yükleniyor durumunu göster
+        const sendButton = document.getElementById('sendButton');
+        if (sendButton) {
+            sendButton.disabled = true;
+            sendButton.innerHTML = '<span class="loading loading-spinner"></span> Düşünüyor...';
+        }
+        
+        // Duyguyu düşünme olarak ayarla
+        emotion = 'thinking';
+        isListening = false;
+        updateAvatar();
+        
+        const response = await fetch('/assistant/ask/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value
+            },
+            body: JSON.stringify({ 
+                question: questionText,
+                use_elevenlabs: useElevenLabs,
+                stream_audio: streamAudio
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            showNotification('Hata: ' + data.error, 'error');
+            emotion = 'neutral';
+            updateAvatar();
+            return;
+        }
+        
+        // Cevabı göster
+        displayAnswer(data.answer);
+        
+        // Ses dosyası varsa oynat
+        if (data.audio_url) {
+            if (streamAudio) {
+                // Ses akışı
+                playStreamingAudio(data.audio_url);
+            } else {
+                // Normal ses oynatma
+                playAudio(data.audio_url);
+            }
+        } else {
+            emotion = 'smiling';
+            updateAvatar();
+            setTimeout(() => {
+                emotion = 'neutral';
+                updateAvatar();
+            }, 2000);
+        }
+        
+        // Girdiyi temizle
+        if (userInput) {
+            userInput.value = '';
+        }
+        
+    } catch (error) {
+        console.error('Soru gönderme hatası:', error);
+        showNotification('Hata: ' + error.message, 'error');
+        emotion = 'neutral';
+        updateAvatar();
+    } finally {
+        // Butonu sıfırla
+        const sendButton = document.getElementById('sendButton');
+        if (sendButton) {
+            sendButton.disabled = false;
+            sendButton.innerHTML = '<span class="mr-2">📤</span> Gönder';
+        }
+    }
+}
+
+// Mesajı sohbete ekle
+function addChatMessage(message, sender) {
+    const chatContainer = document.getElementById('chatContainer');
+    if (!chatContainer) return;
+    
+    const messageElement = document.createElement('div');
+    messageElement.className = `chat ${sender === 'user' ? 'chat-end' : 'chat-start'} mb-4`;
+    messageElement.innerHTML = `
+        <div class="chat-image avatar">
+            <div class="w-10 rounded-full ${sender === 'user' ? 'bg-blue-500' : 'bg-purple-500'} flex items-center justify-center text-white">
+                ${sender === 'user' ? '👤' : '🤖'}
+            </div>
+        </div>
+        <div class="chat-header mb-1">
+            ${sender === 'user' ? 'Siz' : 'Asistan'}
+            <time class="text-xs opacity-50 ml-2">${new Date().toLocaleTimeString()}</time>
+        </div>
+        <div class="chat-bubble ${sender === 'user' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}">${message}</div>
+    `;
+    
+    chatContainer.appendChild(messageElement);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+// Cevabı sohbette göster
+function displayAnswer(answer) {
+    addChatMessage(answer, 'assistant');
+}
+
+// Ses dosyasını oynat (akış)
+function playStreamingAudio(audioUrl) {
+    isSpeaking = true;
+    emotion = 'speaking';
+    updateAvatar();
+    
+    // Halihazırda oynatılan sesi durdur
+    if (currentAudio) {
+        currentAudio.pause();
+    }
+    
+    // Yeni ses elementi oluştur
+    currentAudio = new Audio(audioUrl);
+    
+    currentAudio.onended = function() {
+        console.log('Akış sesi oynatma tamamlandı');
+        isSpeaking = false;
+        emotion = 'smiling';
+        updateAvatar();
+        
+        // Belirli bir süre sonra nötr duruma dön
+        setTimeout(() => {
+            if (!isSpeaking && !isListening) {
+                emotion = 'neutral';
+                updateAvatar();
+            }
+        }, 2000);
+    };
+    
+    currentAudio.onerror = function(e) {
+        console.error('Akış sesi hatası:', e);
+        isSpeaking = false;
+        emotion = 'neutral';
+        updateAvatar();
+        showNotification('Ses oynatma hatası', 'error');
+    };
+    
+    currentAudio.play().catch(e => {
+        console.error('Akış sesi oynatma hatası:', e);
+        isSpeaking = false;
+        emotion = 'neutral';
+        updateAvatar();
+    });
+}
+
+// Ses dosyasını oynat (normal)
+function playAudio(audioUrl) {
+    isSpeaking = true;
+    emotion = 'speaking';
+    updateAvatar();
+    
+    const sound = new Howl({
+        src: [audioUrl],
+        autoplay: true,
+        onend: function() {
+            console.log('Ses oynatma tamamlandı');
+            isSpeaking = false;
+            emotion = 'smiling';
+            updateAvatar();
+            
+            // Belirli bir süre sonra nötr duruma dön
+            setTimeout(() => {
+                if (!isSpeaking && !isListening) {
+                    emotion = 'neutral';
+                    updateAvatar();
+                }
+            }, 2000);
+        }
+    });
+    
+    sound.play();
+}
+
+// Metni seslendir (Web Speech API yedek)
+function speakText(text) {
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'tr-TR';
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        
+        utterance.onstart = function() {
+            isSpeaking = true;
+            emotion = 'speaking';
+            updateAvatar();
+        };
+        
+        utterance.onend = function() {
+            isSpeaking = false;
+            emotion = 'smiling';
+            updateAvatar();
+            
+            // Belirli bir süre sonra nötr duruma dön
+            setTimeout(() => {
+                if (!isSpeaking && !isListening) {
+                    emotion = 'neutral';
+                    updateAvatar();
+                }
+            }, 2000);
+        };
+        
+        speechSynthesis.speak(utterance);
+    }
+}
+
+// Bildirim göster
+function showNotification(message, type = 'info') {
+    const notificationContainer = document.getElementById('notificationContainer');
+    if (!notificationContainer) return;
+    
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} shadow-lg mb-4`;
+    notification.innerHTML = `
+        <div>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    notificationContainer.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Enter tuşu ile mesaj gönder
+document.addEventListener('DOMContentLoaded', function() {
+    const userInput = document.getElementById('userInput');
+    if (userInput) {
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendQuestion();
+            }
+        });
+    }
+});
+</script>
+
+<style>
+@keyframes mouth-move {
+    0% { height: 20px; }
+    50% { height: 35px; }
+    100% { height: 20px; }
+}
+
+@keyframes eye-blink {
+    0% { height: 20px; }
+    50% { height: 5px; }
+    100% { height: 20px; }
+}
+
+.mouth-speaking {
+    animation: mouth-move 0.5s infinite;
+}
+
+.eye-blinking {
+    animation: eye-blink 2s infinite;
+}
+
+.mouth-neutral {
+    height: 20px;
+}
+
+/* Eksik animasyon sınıflarını ekle */
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: .5;
+    }
+}
+
+.animate-bounce {
+    animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(-25%);
+        animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+    }
+    50% {
+        transform: translateY(0);
+        animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+    <div class="max-w-4xl mx-auto">
+        <div class="card bg-white shadow-xl rounded-2xl overflow-hidden">
+            <!-- Başlık -->
+            <div class="bg-gradient-to-r from-purple-500 to-indigo-600 p-6 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold">AI Asistan</h1>
+                        <p class="opacity-90">Size bugün nasıl yardımcı olabilirim?</p>
+                    </div>
+                    <div class="avatar">
+                        <div class="w-16 rounded-full bg-white/20 flex items-center justify-center">
+                            <span class="text-2xl">🤖</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Avatar Bölümü -->
+            <div class="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 flex flex-col items-center">
+                <div class="relative">
+                    <!-- Avatar Konteyneri -->
+                    <div id="assistantAvatar" class="avatar-placeholder w-48 h-48 rounded-full bg-gradient-to-br from-purple-400 to-indigo-600 flex items-center justify-center shadow-lg">
+                        <!-- Yüz elementleri -->
+                        <div class="relative w-full h-full flex items-center justify-center">
+                            <!-- Gözler -->
+                            <div class="absolute top-12 left-10 w-6 h-6 bg-black rounded-full" id="leftEye"></div>
+                            <div class="absolute top-12 right-10 w-6 h-6 bg-black rounded-full" id="rightEye"></div>
+                            
+                            <!-- Ağız -->
+                            <div class="absolute bottom-12 w-16 bg-black rounded-full mouth-neutral" id="mouth"></div>
+                            
+                            <!-- Duygu göstergesi -->
+                            <div class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center" id="emotionIndicator"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Mikrofon Göstergesi -->
+                    <div class="absolute -bottom-2 -right-2 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white shadow-lg animate-pulse hidden" id="micIndicator">
+                        <span class="text-xl">🎤</span>
+                    </div>
+                </div>
+                
+                <div class="mt-4 text-center">
+                    <h2 class="text-xl font-semibold text-gray-800">AI Asistan</h2>
+                    <p class="text-gray-600">Verileriniz hakkında her şeyi sorabilirsiniz</p>
+                </div>
+            </div>
+            
+            <!-- Chat Container -->
+            <div class="p-6">
+                <div id="chatContainer" class="space-y-4 h-96 overflow-y-auto mb-6 bg-gray-50 rounded-xl p-4">
+                    <!-- Welcome message -->
+                    <div class="chat chat-start">
+                        <div class="chat-image avatar">
+                            <div class="w-10 rounded-full bg-purple-500 flex items-center justify-center text-white">
+                                🤖
+                            </div>
+                        </div>
+                        <div class="chat-header mb-1">
+                            Asistan
+                            <time class="text-xs opacity-50 ml-2">{{ request.user.first_name|default:request.user.username }}</time>
+                        </div>
+                        <div class="chat-bubble bg-purple-100 text-purple-800">
+                            Merhaba {{ request.user.first_name|default:request.user.username }}! Size nasıl yardımcı olabilirim? 😊<br><br>
+                            <strong>💡 Not:</strong> AI asistanı kullanabilmek için OpenAI API anahtarının yapılandırılması gerekir.<br>
+                            Sistem yöneticinizden API anahtarını yapılandırmasını isteyin.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Input Area -->
+                <div class="flex gap-2 flex-wrap">
+                    <div class="flex-1 relative min-w-[200px]">
+                        <input 
+                            type="text" 
+                            id="userInput"
+                            placeholder="Sorunuzu buraya yazın veya sesli komut verin..."
+                            class="input input-bordered w-full pr-12"
+                        />
+                        <button 
+                            id="micButton"
+                            onclick="toggleMicrophone()"
+                            class="btn btn-circle btn-primary absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 hover:bg-blue-600 border-none"
+                        >
+                            <span id="micIcon" class="text-lg">mic</span>
+                        </button>
+                    </div>
+                    <button 
+                        id="ttsButton"
+                        onclick="toggleTTS()"
+                        class="btn btn-secondary"
+                    >
+                        <span class="mr-2">🎤</span> ElevenLabs
+                    </button>
+                    <button 
+                        id="streamingButton"
+                        onclick="toggleStreaming()"
+                        class="btn btn-info"
+                    >
+                        <span class="mr-2">📡</span> Akış KAPALI
+                    </button>
+                    <button 
+                        id="sendButton"
+                        onclick="sendQuestion()"
+                        class="btn btn-primary"
+                    >
+                        <span class="mr-2">📤</span> Gönder
+                    </button>
+                </div>
+                
+                <!-- Notification Container -->
+                <div id="notificationContainer" class="mt-4"></div>
+                
+                <!-- API Key Setup Instructions -->
+                <div class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h3 class="font-bold text-yellow-800 mb-2">💡 AI Asistanı Etkinleştirme</h3>
+                    <p class="text-yellow-700 text-sm">
+                        AI asistanı kullanabilmek için aşağıdaki adımları izleyin:
+                    </p>
+                    <ol class="list-decimal list-inside text-yellow-700 text-sm mt-2 space-y-1">
+                        <li><a href="https://platform.openai.com/api-keys" target="_blank" class="text-blue-600 hover:underline">OpenAI</a> veya <a href="https://elevenlabs.io/" target="_blank" class="text-blue-600 hover:underline">ElevenLabs</a> hesabınızdan API anahtarlarını alın</li>
+                        <li>Proje dizinindeki <code>.env</code> dosyasını düzenleyin</li>
+                        <li><code>OPENAI_API_KEY=sk-...</code> ve/veya <code>ELEVENLABS_API_KEY=...</code> satırlarını ekleyin</li>
+                        <li>Sunucuyu yeniden başlatın</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

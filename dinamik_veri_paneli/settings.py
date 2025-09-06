@@ -17,6 +17,9 @@ from decouple import config, Csv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -39,16 +42,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
-    # Third party apps
-    'tailwind',
-    'theme',
-    'corsheaders',
-    'rest_framework',
-    'django_filters',
-    
-    # Local apps
     'veri_yonetimi',
+    'theme',
+    'assistant',  # Add this line
 ]
 
 MIDDLEWARE = [
@@ -307,3 +303,6 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
+
+# OpenAI API Key (add this section)
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')

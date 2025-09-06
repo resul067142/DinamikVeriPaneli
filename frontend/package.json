@@ -1,0 +1,19 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@react-spring/web": "^10.0.1",
+    "react-avatar-editor": "^13.0.2",
+    "react-lottie": "^1.2.10",
+    "react-webcam": "^7.2.0"
+  }
+}

@@ -410,7 +410,9 @@ def veri_ekle(request):
                     }
                 )
                 
-                messages.success(request, 'Veri başarıyla eklendi!')
+                # Detaylı başarı mesajı oluştur
+                success_message = f'📊 Veri Başarıyla Eklendi!|İl: {ana_veri.il_adi}|Kurulacak: {ana_veri.kurulacak_cihaz_sayisi:,} cihaz|Kurulan: {ana_veri.kurulan_cihaz_sayisi:,} cihaz|Tamamlanma: %{ana_veri.tamamlanma_yuzdesi}|Tarih: {timezone.now().strftime("%d.%m.%Y %H:%M")}'
+                messages.success(request, success_message)
                 return redirect('veri_yonetimi:veri_listesi')
             except Exception as e:
                 import traceback
@@ -505,7 +507,9 @@ def veri_guncelle(request, pk):
                     yeni_deger=yeni_degerler
                 )
                 
-                messages.success(request, 'Veri başarıyla güncellendi!')
+                # Detaylı başarı mesajı oluştur
+                success_message = f'📊 Veri Başarıyla Güncellendi!|İl: {ana_veri.il_adi}|Kurulacak: {ana_veri.kurulacak_cihaz_sayisi:,} cihaz|Kurulan: {ana_veri.kurulan_cihaz_sayisi:,} cihaz|Tamamlanma: %{ana_veri.tamamlanma_yuzdesi}|Tarih: {timezone.now().strftime("%d.%m.%Y %H:%M")}'
+                messages.success(request, success_message)
                 return redirect('veri_yonetimi:veri_listesi')
             except Exception as e:
                 messages.error(request, f'Veri güncellenirken hata oluştu: {str(e)}')
@@ -680,7 +684,9 @@ def sutun_ekle(request):
                 }
             )
             
-            messages.success(request, 'Sütun başarıyla eklendi!')
+            # Detaylı başarı mesajı oluştur
+            success_message = f'➕ Sütun Başarıyla Eklendi!|Ad: {sutun.ad}|Tip: {sutun.tip}|Menü Tipi: {sutun.menu_tipi}|Sıra: {sutun.sıra}|Tarih: {timezone.now().strftime("%d.%m.%Y %H:%M")}'
+            messages.success(request, success_message)
             return redirect('veri_yonetimi:sutun_listesi')
         else:
             messages.error(request, 'Form hataları var. Lütfen kontrol edin.')
@@ -743,7 +749,9 @@ def sutun_guncelle(request, pk):
                 yeni_deger=yeni_degerler
             )
             
-            messages.success(request, 'Sütun başarıyla güncellendi!')
+            # Detaylı başarı mesajı oluştur
+            success_message = f'✏️ Sütun Başarıyla Güncellendi!|Ad: {sutun.ad}|Tip: {sutun.tip}|Menü Tipi: {sutun.menu_tipi}|Sıra: {sutun.sıra}|Aktif: {"Evet" if sutun.aktif else "Hayır"}|Tarih: {timezone.now().strftime("%d.%m.%Y %H:%M")}'
+            messages.success(request, success_message)
             return redirect('veri_yonetimi:sutun_listesi')
         else:
             messages.error(request, 'Form hataları var. Lütfen kontrol edin.')
@@ -923,18 +931,15 @@ def kullanici_listesi(request):
     }
     return render(request, 'veri_yonetimi/kullanici_listesi.html', context)
 
-@login_required
+@login_required 
 def kullanici_ekle(request):
     """
     Yeni kullanıcı ekle
     """
-    # Session'a app ayarlarını set et
-
-    
-    # Sadece süper kullanıcılar kullanıcı ekleyebilir
+    # Sadece yetkili kullanıcılar erişebilir
     if not request.user.is_superuser:
-        messages.error(request, 'Sadece admin kullanıcılar yeni kullanıcı ekleyebilir.')
-        return redirect('veri_yonetimi:kullanici_listesi')
+        messages.error(request, 'Bu sayfaya erişim yetkiniz yok.')
+        return redirect('veri_yonetimi:ana_sayfa')
     
     if request.method == 'POST':
         # Form verilerini al
@@ -942,26 +947,23 @@ def kullanici_ekle(request):
         email = request.POST.get('email')
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
-        tc_kimlik = request.POST.get('tc_kimlik')
-        sorumlu_iller = request.POST.getlist('sorumlu_iller')  # Çoklu seçim
         password1 = request.POST.get('password1')
         password2 = request.POST.get('password2')
-        is_superuser = request.POST.get('is_superuser') == 'on'
-        is_staff = request.POST.get('is_staff') == 'on'
+        tc_kimlik = request.POST.get('tc_kimlik')
+        sorumlu_iller = request.POST.getlist('sorumlu_iller')
+        user_role = request.POST.get('user_role', 'viewer')
         
-        # Validasyon
-        if not username or not password1 or not password2:
-            messages.error(request, 'Kullanıcı adı ve şifre zorunludur.')
-            return redirect('veri_yonetimi:kullanici_ekle')
-        
+        # Şifre kontrolü
         if password1 != password2:
             messages.error(request, 'Şifreler eşleşmiyor.')
             return redirect('veri_yonetimi:kullanici_ekle')
         
+        # Kullanıcı adı kontrolü
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Bu kullanıcı adı zaten kullanılıyor.')
             return redirect('veri_yonetimi:kullanici_ekle')
         
+        # TC kimlik kontrolü
         if tc_kimlik and UserProfile.objects.filter(tc_kimlik=tc_kimlik).exists():
             messages.error(request, 'Bu TC kimlik numarası zaten kullanılıyor.')
             return redirect('veri_yonetimi:kullanici_ekle')
@@ -973,15 +975,30 @@ def kullanici_ekle(request):
                 email=email,
                 password=password1,
                 first_name=first_name,
-                last_name=last_name,
-                is_superuser=is_superuser,
-                is_staff=is_staff
+                last_name=last_name
             )
+            
+            # Role göre yetkilendirme ayarla
+            if user_role == 'super_user':
+                user.is_superuser = True
+                user.is_staff = True
+            elif user_role == 'province_admin':
+                user.is_staff = True
+                user.is_superuser = False
+            elif user_role == 'province_manager':
+                user.is_staff = True
+                user.is_superuser = False
+            else:  # viewer
+                user.is_staff = False
+                user.is_superuser = False
+                
+            user.save()
             
             # UserProfile oluştur
             profile = UserProfile.objects.create(
                 user=user, 
-                tc_kimlik=tc_kimlik if tc_kimlik else None
+                tc_kimlik=tc_kimlik if tc_kimlik else None,
+                role=user_role
             )
             # Sorumlu illeri set et
             if sorumlu_iller:
@@ -993,16 +1010,17 @@ def kullanici_ekle(request):
                 user=user,
                 islem_yapan=request.user,
                 islem_tipi='kullanici_olusturuldu',
-                aciklama=f'"{username}" kullanıcısı oluşturuldu. TC: {tc_kimlik or "Belirtilmemiş"}, Email: {email or "Belirtilmemiş"}',
+                aciklama=f'"{username}" kullanıcısı oluşturuldu. TC: {tc_kimlik or "Belirtilmemiş"}, Email: {email or "Belirtilmemiş"}, Rol: {profile.get_role_display()}',
                 request=request,
                 yeni_deger={
                     'username': username,
                     'email': email,
                     'first_name': first_name,
                     'last_name': last_name,
-                    'is_superuser': is_superuser,
-                    'is_staff': is_staff,
-                    'tc_kimlik': tc_kimlik
+                    'is_superuser': user.is_superuser,
+                    'is_staff': user.is_staff,
+                    'tc_kimlik': tc_kimlik,
+                    'role': user_role
                 }
             )
             
@@ -1012,10 +1030,6 @@ def kullanici_ekle(request):
         except Exception as e:
             messages.error(request, f'Kullanıcı oluşturulurken hata oluştu: {str(e)}')
             return redirect('veri_yonetimi:kullanici_ekle')
-    
-    # Sağ sidebar için ek veriler
-    user_count = User.objects.count()
-    aktif_sutunlar = Sütun.objects.filter(aktif=True).order_by('sıra')
     
     # Türkiye illeri
     turkiye_illeri = [
@@ -1032,8 +1046,6 @@ def kullanici_ekle(request):
     ]
     
     context = {
-        'user_count': user_count,
-        'aktif_sutunlar': aktif_sutunlar,
         'turkiye_illeri': sorted(turkiye_illeri),
     }
     return render(request, 'veri_yonetimi/kullanici_formu.html', context)
@@ -1120,7 +1132,10 @@ def kullanici_guncelle(request, pk):
                 yeni_deger=yeni_degerler
             )
             
-            messages.success(request, f'"{kullanici.username}" kullanıcısı başarıyla güncellendi!')
+            # Detaylı başarı mesajı oluştur
+            role_text = 'Yönetici' if is_superuser else 'İl Sorumlusu' if is_staff else 'Kullanıcı'
+            success_message = f'👤 Kullanıcı Başarıyla Güncellendi!|Kullanıcı Adı: {kullanici.username}|Ad Soyad: {(first_name + " " + last_name).strip() or "Belirtilmemiş"}|E-posta: {email or "Belirtilmemiş"}|Rol: {role_text}|Durum: {"Aktif" if is_active else "Pasif"}|Tarih: {timezone.now().strftime("%d.%m.%Y %H:%M")}'
+            messages.success(request, success_message)
             return redirect('veri_yonetimi:kullanici_listesi')
             
         except Exception as e:
@@ -1969,23 +1984,48 @@ def kullanici_guncelle(request, pk):
         last_name = request.POST.get('last_name')
         tc_kimlik = request.POST.get('tc_kimlik')
         sorumlu_iller = request.POST.getlist('sorumlu_iller')
-        role = request.POST.get('role', 'user')
+        user_role = request.POST.get('user_role', 'viewer')
         
         try:
+            # Kullanıcı adı kontrolü (kendisi hariç)
+            if User.objects.filter(username=username).exclude(pk=user.pk).exists():
+                messages.error(request, 'Bu kullanıcı adı zaten kullanılıyor.')
+                return redirect('veri_yonetimi:kullanici_guncelle', pk=pk)
+            
+            # TC kimlik kontrolü (kendisi hariç)
+            if tc_kimlik and UserProfile.objects.filter(tc_kimlik=tc_kimlik).exclude(user=user).exists():
+                messages.error(request, 'Bu TC kimlik numarası zaten kullanılıyor.')
+                return redirect('veri_yonetimi:kullanici_guncelle', pk=pk)
+            
+            # Eski değerleri kaydet
+            eski_degerler = {
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'is_superuser': user.is_superuser,
+                'is_staff': user.is_staff,
+                'tc_kimlik': getattr(user.profile, 'tc_kimlik', None) if hasattr(user, 'profile') else None,
+                'role': getattr(user.profile, 'role', 'viewer') if hasattr(user, 'profile') else 'viewer'
+            }
+            
             # Kullanıcı bilgilerini güncelle
             user.username = username
             user.email = email
             user.first_name = first_name
             user.last_name = last_name
             
-            # Role ayarla
-            if role == 'admin':
+            # Role göre yetkilendirme ayarla
+            if user_role == 'super_user':
                 user.is_superuser = True
                 user.is_staff = True
-            elif role == 'staff':
+            elif user_role == 'province_admin':
                 user.is_staff = True
                 user.is_superuser = False
-            else:
+            elif user_role == 'province_manager':
+                user.is_staff = True
+                user.is_superuser = False
+            else:  # viewer
                 user.is_staff = False
                 user.is_superuser = False
                 
@@ -1993,16 +2033,31 @@ def kullanici_guncelle(request, pk):
             
             # Profile güncelle
             profile.tc_kimlik = tc_kimlik
+            profile.role = user_role
             profile.set_sorumlu_iller(sorumlu_iller)
             profile.save()
+            
+            # Yeni değerler
+            yeni_degerler = {
+                'username': username,
+                'email': email,
+                'first_name': first_name,
+                'last_name': last_name,
+                'is_superuser': user.is_superuser,
+                'is_staff': user.is_staff,
+                'tc_kimlik': tc_kimlik,
+                'role': user_role
+            }
             
             # Log kaydet
             log_user_activity(
                 user=user,
                 islem_yapan=request.user,
                 islem_tipi='kullanici_guncellendi',
-                aciklama=f'Kullanıcı güncellendi: {username} ({role})',
-                request=request
+                aciklama=f'Kullanıcı güncellendi: {username} ({profile.get_role_display()})',
+                request=request,
+                eski_deger=eski_degerler,
+                yeni_deger=yeni_degerler
             )
             
             messages.success(request, f'Kullanıcı "{username}" başarıyla güncellendi.')
@@ -2020,15 +2075,15 @@ def kullanici_guncelle(request, pk):
         'Mersin', 'İstanbul', 'İzmir', 'Kars', 'Kastamonu', 'Kayseri', 'Kırklareli', 'Kırşehir', 
         'Kocaeli', 'Konya', 'Kütahya', 'Malatya', 'Manisa', 'Kahramanmaraş', 'Mardin', 'Muğla', 
         'Muş', 'Nevşehir', 'Niğde', 'Ordu', 'Rize', 'Sakarya', 'Samsun', 'Siirt', 'Sinop', 
-        'Sivas', 'Tekirdağ', 'Tokat', 'Trabzon', 'Tunceli', 'Şanlıurfa', 'Uşak', 'Van', 'Yozgat', 
-        'Zonguldak', 'Aksaray', 'Bayburt', 'Karaman', 'Kırıkkale', 'Batman', 'Şırnak', 'Bartın', 
-        'Ardahan', 'Iğdır', 'Yalova', 'Karabük', 'Kilis', 'Osmaniye', 'Düzce'
+        'Sivas', 'Tekirdağ', 'Tokat', 'Trabzon', 'Tunceli', 'Şanlıurfa', 'Uşak', 'Van', 
+        'Yozgat', 'Zonguldak', 'Aksaray', 'Bayburt', 'Karaman', 'Kırıkkale', 'Batman', 'Şırnak', 
+        'Bartın', 'Ardahan', 'Iğdır', 'Yalova', 'Karabük', 'Kilis', 'Osmaniye', 'Düzce'
     ]
     
     context = {
         'user_obj': user,
         'profile': profile,
-        'turkiye_illeri': turkiye_illeri,
+        'turkiye_illeri': sorted(turkiye_illeri),
         'is_edit': True,
     }
     return render(request, 'veri_yonetimi/kullanici_formu.html', context)
@@ -2094,23 +2149,39 @@ def change_user_role(request, pk):
             
             import json
             data = json.loads(request.body)
-            role = data.get('role', 'user')
+            role = data.get('role', 'viewer')
+            
+            # Eski değerleri kaydet
+            eski_yetkiler = {
+                'is_superuser': user.is_superuser,
+                'is_staff': user.is_staff,
+                'role': getattr(user.profile, 'role', 'viewer') if hasattr(user, 'profile') else 'viewer'
+            }
             
             # Role ayarla
-            if role == 'superuser':
+            if role == 'super_user':
                 user.is_superuser = True
                 user.is_staff = True
-                role_name = 'Admin'
-            elif role == 'staff':
+                role_name = 'Süper Kullanıcı'
+            elif role == 'province_admin':
                 user.is_staff = True
                 user.is_superuser = False
-                role_name = 'Personel'
-            else:
+                role_name = 'İl Yöneticisi'
+            elif role == 'province_manager':
+                user.is_staff = True
+                user.is_superuser = False
+                role_name = 'İl Sorumlusu'
+            else:  # viewer
                 user.is_staff = False
                 user.is_superuser = False
-                role_name = 'Kullanıcı'
+                role_name = 'Seyirci'
                 
             user.save()
+            
+            # UserProfile güncelle
+            profile, created = UserProfile.objects.get_or_create(user=user)
+            profile.role = role
+            profile.save()
             
             # Log kaydet
             log_user_activity(
@@ -2118,7 +2189,9 @@ def change_user_role(request, pk):
                 islem_yapan=request.user,
                 islem_tipi='kullanici_rol_degisti',
                 aciklama=f'Kullanıcı rolü {role_name} yapıldı: {user.username}',
-                request=request
+                request=request,
+                eski_deger=eski_yetkiler,
+                yeni_deger={'is_superuser': user.is_superuser, 'is_staff': user.is_staff, 'role': role}
             )
             
             return JsonResponse({
